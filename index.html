@@ -605,7 +605,15 @@
         </div>
       </div>
     </div>
-    
+    <div id="controles-moviles">
+    <button onclick="zoomIn()">+</button>
+    <button onclick="zoomOut()">−</button>
+    <button onclick="panIzquierda()">←</button>
+    <button onclick="panDerecha()">→</button>
+    <button onclick="panArriba()">↑</button>
+    <button onclick="panAbajo()">↓</button>
+    <button onclick="resetView()">⟲</button>
+</div>
     <div id="controles">
       <span id="info-frame"></span>
     </div>  
@@ -627,6 +635,62 @@
      
     <datalist id="listaMarcas"></datalist>
     <script>
+      function zoomIn() {
+        const scene = document.getElementById('mapa')._fullLayout.scene;
+        const camera = JSON.parse(JSON.stringify(scene.camera));
+        camera.eye.x *= 0.9;
+        camera.eye.y *= 0.9;
+        camera.eye.z *= 0.9;
+        Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+      function zoomOut() {
+          const scene = document.getElementById('mapa')._fullLayout.scene;
+          const camera = JSON.parse(JSON.stringify(scene.camera));
+          camera.eye.x *= 1.1;
+          camera.eye.y *= 1.1;
+          camera.eye.z *= 1.1;
+          Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+
+      function panIzquierda() {
+          const scene = document.getElementById('mapa')._fullLayout.scene;
+          const camera = JSON.parse(JSON.stringify(scene.camera));
+          camera.eye.x -= 0.1;
+          Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+
+      function panDerecha() {
+          const scene = document.getElementById('mapa')._fullLayout.scene;
+          const camera = JSON.parse(JSON.stringify(scene.camera));
+          camera.eye.x += 0.1;
+          Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+
+      function panArriba() {
+          const scene = document.getElementById('mapa')._fullLayout.scene;
+          const camera = JSON.parse(JSON.stringify(scene.camera));
+          camera.eye.y += 0.1;
+          Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+
+      function panAbajo() {
+          const scene = document.getElementById('mapa')._fullLayout.scene;
+          const camera = JSON.parse(JSON.stringify(scene.camera));
+          camera.eye.y -= 0.1;
+          Plotly.relayout('mapa', {'scene.camera': camera});
+      }
+
+      function resetView() {
+          Plotly.relayout('mapa', {
+              'scene.camera': {
+                  eye: {x: 1.5, y: 1.5, z: 0.8},
+                  up: {x: 0, y: 0, z: 1},
+                  center: {x: 0, y: 0, z: 0}
+              }
+          });
+      }
+    </script>
+    <script>
       document.addEventListener('DOMContentLoaded', function() {
       const URL_DATOS = 'datos_sismos.json.gz'
       
@@ -641,7 +705,6 @@
       let frameActual = 0;
       let animando = false;
       let camaraActual = null;
-      let camaraInicial = null;
       const DURACION_FRAME = 100; // ms por frame
       let readerGlobal = null;
       let recibidoGlobal = 0;
@@ -720,7 +783,7 @@
           data.layout.uirevision = 'mantener-camara';
           
           // Guardar la cámara inicial
-          camaraInicial = data.layout.scene ? data.layout.scene.camera : {
+          camaraActual = data.layout.scene ? data.layout.scene.camera : {
             eye: {x: 1.5, y: 1.5, z: 0.8},
             up: {x: 0, y: 0, z: 1},
             center: {x: 0, y: 0, z: 0}
@@ -739,7 +802,7 @@
           Plotly.addFrames('mapa', dataGlobal.frames)
         ))
         .then(() => {
-          //console.log('Frames añadidos');
+          //console.log('Cuadros añadidos');
             
           // Ocultar loading
           const loading = document.getElementById('loading');
@@ -767,6 +830,7 @@
           configurarResize();
         })
         .then(() =>{
+        /*
           const mapa = document.getElementById('mapa');
           const hammer = new Hammer(mapa); 
           
@@ -775,10 +839,16 @@
           hammer.get('pan').set({ enable: true });
           hammer.get('rotate').set({ enable:true });  
           
+         
+          let camaraInicial = null;
+          let camaraActual = null;
+          
+          
           // Guardar la cámara actual
           mapa.on('plotly_relayout',function(eventData){
             if (eventData['scene.camera']){
               camaraActual = eventData['scene.camera'];
+              console.log("Guardar cámara actual",camaraActual);
             }
           });
           
@@ -787,18 +857,22 @@
             camaraInicial = JSON.parse(JSON.stringify(
               document.getElementById('mapa')._fullLayout.scene.camera
             ));
+            console.log("Camara antes de zoom",camaraInicial);
           });
           hammer.on('pinch',function(e){
              if (!cameraInicial) return;
-             const camera = JSON.parse(JSON.stringify(cameraInicial));
+             const camera = JSON.parse(JSON.stringify(camaraInicial));
              const factor = 1 / e.scale;
              camera.eye.x *= factor;
              camera.eye.y *= factor;
              camera.eye.z *= factor;
+             
              Plotly.relayout('mapa',{'scene.camera':camera});
+             console.log("Camara de zoom",camara);
           });
           hammer.on('pinchend',function(){
           camaraInicial = null;
+          console.log("Camara zoom final",camaraActual);
           });
           
           //Paneo
@@ -806,29 +880,33 @@
             camaraInicial = JSON.parse(JSON.stringify(
               document.getElementById('mapa')._fullLayout.scene.camera
             ));
+            console.log("Camara paneo inicial",camaraInicial);
           });
           hammer.on('pan',function(e){
             if (!camaraInicial) return;
-            const camera = JSON.parse(JSON.stringify(camaraInicial));
+            const camara = JSON.parse(JSON.stringify(camaraInicial));
             const factor = 0.01;
-            camera.x += e.deltaX*factor;
-            camera.y += e.deltaY*factor;
-            camera.z += e.deltaZ*factor;
-            Plotly.relayout('mapa',{'scene.camera':camera});
+            camara.x += e.deltaX*factor;
+            camara.y += e.deltaY*factor;
+            camara.z += e.deltaZ*factor;
+            Plotly.relayout('mapa',{'scene.camera':camara});
+            console.log("Camara paneo",camara);
           });     
           hammer.on('panend',function(){
             camaraInicial = null;
+            console.log("Camara paneo final",camara);
           });
           
           //Rotación
           hammer.on('rotatestart',function(){
-            camaraInicial = JSON.parse(JSON.stringify(
+            camaraActual = JSON.parse(JSON.stringify(
               document.getElementById('mapa')._fullLayout.scene.camera
             ));
+            console.log("Camara zoom inicial",camaraActual);
           });
           hammer.on('rotate',function(e){
             if (!camaraInicial) return;
-            const camera = JSON.parse(JSON.stringify(camaraInicial));
+            //const camera = JSON.parse(JSON.stringify(camaraInicial));
             const factor = 0.005;
             //angulos de rotación en radianes
             const theta = e.deltaX*factor; // rotación horizontal
@@ -850,7 +928,7 @@
             const rz2 = ry1*sinPhi + rz1*cosPhi;
             
             //Nueva posición del ojo
-            const nuevaCamara={
+            const camara={
               eye:{
                 x:center.x + rx2,
                 y:center.y + ry2,
@@ -859,11 +937,13 @@
               up:camaraInicial.up,
               center:camaraInicial.center
             };
-            Plotly.relayout('mapa',{'scene.camera':nuevaCamara});
+            Plotly.relayout('mapa',{'scene.camera':camara});
+            console.log("Camara de zoom",camara);
           });
           hammer.on('rotateend',function(){
             camaraInicial=null;
-          });
+          console.log("Camara de zoom",camara);
+          });*/
         })
         .catch(error => {
           //console.error('Error:', error);
@@ -960,10 +1040,10 @@
             frame: {duration: 0, redraw: true},
              mode: 'immediate'
           }).then(function() {
-            // Restaurar la cámara
-            //if (camaraActual) {
-              //Plotly.relayout('mapa', {'scene.camera': camaraActual});
-            //}
+             //Restaurar la cámara
+            if (camaraActual) {
+              Plotly.relayout('mapa', {'scene.camera': camaraActual});
+            }
         
             // Actualizar UI
             slider.value = frameActual;
@@ -1005,16 +1085,17 @@
             }
         });
         
-        
         // ===== Reset =====
         btnReset.addEventListener('click', function() {
             pausarAnimacion();
             frameActual = 0;
             irAFrame(frameActual);
             
-            // Restaurar cámara inicial
-            camaraActual = camaraInicial
-            
+            camaraActual = dataGlobal.layout.scene ? dataGlobal.layout.scene.camera : {
+                eye: {x: 1.5, y: 1.5, z: 1.0},
+                up: {x: 0, y: 0, z: 1},
+                center: {x: 0, y: 0, z: 0}
+            }
             Plotly.relayout('mapa', {'scene.camera': camaraActual});
         });
         
@@ -1053,10 +1134,10 @@
                 frame: {duration: 0, redraw: true},
                 mode: 'immediate'
             }).then(function() {
-                // Restaurar la cámara después del frame
-               // if (camaraActual) {
-               //     Plotly.relayout('mapa', {'scene.camera': camaraActual});
-                //}
+            // Restaurar la cámara después del frame
+               if (camaraActual) {
+                Plotly.relayout('mapa', {'scene.camera': camaraActual});
+                }
             });
             
             slider.value = indice;
@@ -1178,7 +1259,7 @@
           return leerChunk();    
         });
       }
-    });
+    }) ;
   </script>
     <div class="resena">
 
