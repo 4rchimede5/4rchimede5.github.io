@@ -364,7 +364,7 @@
  
       <script>
         // Cargar los datos desde el hosting externo
-        fetch('https://github.com/4rchimede5/4rchimede5.github.io/releases/download/v9.24-datos/datos_sismos.json')
+        fetch('https://corsproxy.io/?' + encodeURIComponent('https://github.com/tu-usuario/tu-repo/releases/download/v1.0-datos/datos_sismos.json'))
           .then(response => {
             if (!response.ok) {
               throw new Error('Error al cargar los datos: ' + response.status);
