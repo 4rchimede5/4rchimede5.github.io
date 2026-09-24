@@ -358,17 +358,18 @@
     </style>
     </head>
     <body>
+      <div id='mapa'></div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
       <script>
         document.addEventListener('DOMCOntentLoaded',function(){
           const URL_DATOS ='https://github.com/4rchimede5/4rchimede5.github.io/datos_sismos.json';          
         fetch(URL_DATOS)
-          .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al cargar los datos: ' + response.status);
-                }
-                return response.json();
-        })
+          .then(response => response.arrayBuffer())
+          .then(buffer =>{
+            const decompressed = pako.inflate(new Uint8Array(buffer), {to:'string'};
+            const data = JSON.parse(decompressed);
+          })
+          
         .then(data => {
           console.log('Tipo de data:', typeof data);
           console.log('Claves de data:', Object.keys(data));
@@ -377,14 +378,14 @@
           console.log('Tipo de data.layout:', typeof data.layout);
           console.log('Primeros 500 caracteres:', JSON.stringify(data).substring(0, 500));
           
-          Plotly.react('mi-mapa', data.data, data.layout, {frames: data.frames}, {
+          Plotly.react('mapa', data.data, data.layout, {frames: data.frames}, {
             responsive: true,
             sisplayModeBar: true
           });
         })
         .catch(error => {
-          document.getElementById('mi-mapa').innerHTML = 
-          '<div class="loading">Error al cargar los datos: ' + error.message + '</div>';
+          document.getElementById('mapa').innerHTML = 
+           '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos.</div>';
             });
       </script>
       <div class="resena">
