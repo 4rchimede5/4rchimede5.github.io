@@ -358,10 +358,12 @@
     </style>
     </head>
     <body>
-      <div id="mi-mapa" style="width: 100%; height: 900px;"></div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
       <script>
-        fetch('https://corsproxy.io/?'+encodeURIComponent('https://github.com/4rchimede5/4rchimede5.github.io/releases/tag/v9.24-datos/datos_sismos.json'))
-        .then(response => {
+        document.addEventListener('DOMCOntentLoaded',function(){
+          const URL_DATOS ='https://github.com/4rchimede5/4rchimede5.github.io/datos_sismos.json';          
+        fetch(URL_DATOS)
+          .then(response => {
           if (!response.ok) {
             throw new Error('Error al cargar los datos: ' + response.status);
                 }
