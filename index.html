@@ -2,9 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=85vw">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"">
     <title>Secuencia Sísmica del Chocó — 2026</title>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script data-goatcounter="https://colsismos.goatcounter.com/count"async src="//gc.zgo.at/count.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+      <script>
+        // Si Plotly no se cargó, cargar desde otro CDN
+        if (typeof Plotly === 'undefined') {
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');
+        }
+     </script>
     <style>
       <style>
   /* ===== Paleta =====
@@ -17,13 +25,13 @@
   body {
     background-color: #fafaf5;
     font-family: 'Helvetica', Arial, sans-serif;
-    margin: 10px;
-    padding: 5px;
+    margin: 0;
+    padding: 0;
   }
   
   /*texto principal*/
   .resena {
-    max-width: 1100px;
+    max-width: 1400px;
     margin: 40px auto;
     padding: 40px;
     background-color: #ffffff;
@@ -34,6 +42,13 @@
     font-size: 14px;
     box-shadow: 0 4px 12px rgba(2, 2, 40, 0.08);
   }
+
+.tabla-desliz {
+    overflow-x: auto;      /* Barra horizontal cuando sea necesario */
+    overflow-y: hidden;    /* Sin barra vertical */
+    width: 100%;           /* Ocupa el ancho del contenedor */
+    -webkit-overflow-scrolling: touch;  /* Scroll suave en iOS */
+}
 
   /* Títulos principales */
   .resena h2 {
@@ -48,8 +63,7 @@
   .resena h3 {
     color: #02228;
     font-size: 16px;
-    border-bottom: 2px solid #AEAF46;
-    margin-top: 25px;
+    margin-top: 5px;
     margin-bottom: 5px;
     text-align:center;
   }
@@ -90,6 +104,7 @@
     text-align:left;
   }
    
+  
   /* Párrafos */
   .resena p {
     margin: 15px 0;
@@ -149,6 +164,8 @@
     background-color: rgba(152, 6, 42, 0.06);
     border-left: 5px solid #98062A;
     border-right: 5px solid #98062A;
+    border-top: 5px solid #98062A;
+    border-bottom: 5px solid #98062A;
     padding: 15px 20px;
     margin: 30px 0;
     border-radius: 4px;
@@ -163,6 +180,7 @@
     border-radius: 8px;
     border-left: 5px solid rgba(174, 175, 70, 0.70);
     border-right: 5px solid rgba(174, 175, 70, 0.70);
+    
   }
 
   .donaciones h2 {
@@ -170,18 +188,30 @@
   }
   
   .agradecimientos {
-  column-count: 3;        /* Divide en 2 columnas */
-  column-gap: 10px;       /* Separación entre columnas */
-  column-rule: 1px solid #AEAF46;  /* Línea divisoria (opcional) */
+    column-count: 3;        /* Divide en 2 columnas */
+    column-gap: 10px;       /* Separación entre columnas */
+    column-rule: 1px solid #AEAF46;  /* Línea divisoria (opcional) */
+}
+
+  .proyectos {
+    background-color: rgba(3, 12, 130, 0.06);
+    border: 2px solid #0BADFB;
+    padding: 15px 20px;
+    margin: 30px 0;
+    border-radius: 8px;
+  }
+
+  .instrucciones {
+    column-count: 2;        /* Divide en 2 columnas */
+    column-gap: 10px;       /* Separación entre columnas */
+    column-rule: 1px solid #AEAF46;  /* Línea divisoria (opcional) */
 }
 
 .tabla-container {
   max-width: 1400px;
-  margin: 40px auto;
+  margin: 10px auto;
   padding: 30px;
   background-color: #ffffff;
-  border: 2px solid #98062A;
-  border-radius: 10px;
   font-family: 'Helvetica', Arial, sans-serif;
   color: #020228;
 }
@@ -190,13 +220,14 @@
   color: #98062A;
   font-size: 20px;
   border-bottom: 3px solid #AEAF46;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
 }
 
 .tabla-sismos {
   width: 100%;
   border-collapse: collapse;
+  border-spacing:0;
   font-size: 13px;
 }
 
@@ -304,7 +335,7 @@
 
 /* Nota al pie */
 .nota-tabla {
-  margin-top: 15px;
+  margin-top: 5px;
   font-size: 12px;
   color: #AD626F;
   font-style: italic;
@@ -312,7 +343,7 @@
 }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 1300px) {
   .tabla-sismos {
     font-size: 11px;
   }
@@ -352,21 +383,20 @@
   width: 20px;
   height: 20px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.celdadiv {
+  border-right: 2px solid rgba(0, 0, 0, 0.8);
 }
 
 .loading {
-    text-align: center;
-    padding: 50px;
-    font-size: 18px;
-    color: #98062A;
-}
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #98062A;
+        }
 
-#mapa {
-    width: 80vw;      /* Ancho completo del contenedor */
-    min-height: 500px; /* Altura mínima para móviles */
-    max-height: 1200px; /* Altura máxima para pantallas grandes */
-}
 </style>
 
     </style>
@@ -374,83 +404,77 @@
     <body>
       <div id="loading" class="loading">Cargando datos sísmicos...</div>
       <div id="mapa"></div>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
       <script>
-        // Si Plotly no se cargó, cargar desde otro CDN
-        if (typeof Plotly === 'undefined') {
-        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');
-        }
-     </script>
-     <script>
-      document.addEventListener('DOMContentLoaded',function(){
-        const URL_DATOS ='https://4rchimede5.github.io/datos_sismos.json.gz';          
+        document.addEventListener('DOMContentLoaded', function() {
+        const URL_DATOS = 'https://4rchimede5.github.io/datos_sismos.json.gz';
+    
         fetch(URL_DATOS)
           .then(response => {
-            console.log('Funcionamiento de Plotly;',typeof Plotly)
+            console.log('Plotly disponible:', typeof Plotly);
             if (!response.ok) throw new Error('HTTP ' + response.status);
-            return response.arrayBuffer();  // ← JSON pako
+              return response.arrayBuffer();
           })
-          .then(buffer =>{
-            const decompressed = pako.inflate(new Uint8Array(buffer), {to:'string'});
-            const data = JSON.parse(decompressed);
-            return data
+          .then(buffer => {
+            const decompressed = pako.inflate(new Uint8Array(buffer), {to: 'string'});
+            return JSON.parse(decompressed);
           })
-          
           .then(data => {
+            window.data = data;
             console.log('Datos cargados');
-            console.log('Tipo de data:', typeof data);
-            console.log('Claves de data:', Object.keys(data));
-            console.log('Tipo de data.data:', typeof data.data);
-            console.log('Longitud de data.data:', data.data ? data.data.length : 'undefined');
-            console.log('Tipo de data.layout:', typeof data.layout);
-            console.log('Primeros 50 caracteres:', JSON.stringify(data).substring(0, 50));
+            console.log('Frames:', data.frames ? data.frames.length : 'undefined');
             
-            document.getElementById('loading').style.display = 'none';
             // Eliminar width y height del layout
             delete data.layout.width;
             delete data.layout.height;
-    
-            // Opcional: forzar autosize
             data.layout.autosize = true;
-                              
-            Plotly.react('mapa', data.data, data.layout, {frames: data.frames}, {
-              responsive: true,
-              autosize: true,
-              displayModeBar: true
+            
+            // Renderizar el gráfico
+            Plotly.newPlot('mapa', data.data, data.layout, {
+                responsive: true,
+                autosize: true,
+                displayModeBar: true
+            }).then(() => {
+                // ← Añadir frames DESPUÉS de newPlot
+                Plotly.addFrames('mapa', data.frames);
+                console.log('Frames añadidos');
+                
+                // Ocultar loading
+                const loading = document.getElementById('loading');
+                if (loading) loading.style.display = 'none';
+                
+                // Debounce para resize
+                function debounce(func, wait) {
+                    let timeout;
+                    return function() {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(func, wait);
+                    };
+                }
+                
+                function resizeMapa() {
+                    Plotly.Plots.resize('mapa');
+                }
+                
+                const resizeDebounced = debounce(resizeMapa, 200);
+                window.addEventListener('resize', resizeDebounced);
+                
+                const mapaElement = document.getElementById('mapa');
+                if (window.ResizeObserver) {
+                    const resizeObserver = new ResizeObserver(resizeMapa);
+                    resizeObserver.observe(mapaElement);
+                }
             });
-            
-            // Función debounce: retrasa la ejecución hasta que pasen N ms sin llamadas
-            function debounce(func, wait) {
-              let timeout;
-              return function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(func, wait);
-              };
-            }
-            
-            function resizeMapa() { Plotly.Plots.resize('mapa');}
-            
-            const resizeDebounced = debounce(resizeMapa, 350);
-            
-            window.addEventListener('resize', resizeDebounced);
-            
-            const mapaElement = document.getElementById('mapa');
-
-            if (window.ResizeObserver) {
-              const resizeObserver = new ResizeObserver(resizeMapa);
-              resizeObserver.observe(mapaElement);
-            } else {
-              window.addEventListener('resize', resizeDebounced);
-              };
-            })
-            
+        })
         .catch(error => {
-          console.error('Error:',error);
-          document.getElementById('mapa').innerHTML = 
-            '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos.</div>';
+            console.error('Error:', error);
+            const mapa = document.getElementById('mapa');
+            if (mapa) {
+                mapa.innerHTML = '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos: ' + error.message + '</div>';
+            }
         });
-      });
-     </script>
+});
+</script>
+
       <div class="resena">
 
   <div class="aviso">
@@ -464,31 +488,37 @@
     <li><b>Sismos PRE Mw 7.4:</b> Azul oscuro (más profundo) → Azul claro (menos profundo).</li>
     <li><b>Sismos POS Mw 7.4:</b> Amarillo (más profundo) → Rojo oscuro (menos profundo).</li>
   </ul>
-
-  <h2>Controles</h2>
-  <ul>
-    <li><b>"Animar":</b> reproducir secuencia de sismos.</li>
-    <li><b>"Pausar":</b> pausar la secuencia.</li>
-    <li>Haz <b>clíck</b> en la leyenda (parte superior derecha) para activar/desactivar los sismos PRE o POS terremoto, o las poblaciones.</li>
-    <li>Los sismos cargan uno por uno pero puedes deslizar la barra para adelantar a la fecha que te interese (más adelante habra la opción de acelerar la animación de sismos).</li>
-    <li><b>Celular (controles en borde superior):</b></li>
-    <ul>
-    <li><b>Cámara fotografica: </b>Pantallazo .png</li>
-    <li><b>Lupa: </b>ZOOM</li>
-    <li><b>Cruzeta: </b>DESLIZ vertical/horizontal</li>
-    <li><b>Flechas curvas: </b>ROTACIÓN 3D libre</li>
-    <li><b>Círculo con "Z": </b>ROTACIÓN 3D sobre eje central</li>
-    <li><b>Casa: </b>Vista Inicial</li>
+  
+  
+   <h2>Controles</h2>
+   <ul>
+      <li><b>"Animar":</b> reproducir secuencia de sismos.</li>
+      <li><b>"Pausar":</b> pausar la secuencia.</li>
+      <li>Haz <b>clíck</b> en la leyenda (parte superior derecha) para activar/desactivar los sismos PRE o POS terremoto, o las poblaciones.</li>
+      <li>Los sismos cargan uno por uno pero puedes deslizar la barra para adelantar a la fecha que te interese (más adelante habra la opción de acelerar la animación de sismos).</li>
     </ul>
-    <li><b>Computador:</b></li>
-    <ul>
-    <li><b>1 click izquierdo sostenido:</b> ROTACIÓN 3D.</li>
-    <li><b>1 click derecho sostenido :</b> DESLIZ vertical/horizontal.</li>
-    <li><b>2 movimiento de rueda del ratón:</b> ZOOM</li>
-    </ul>
+    <div class="instrucciones">
+      <ul>
+        <li><b>Celular (controles en borde superior):</b></li>
+          <ul>
+            <li><b>1 dedo en márgen de pantalla:</b> DESLIZ vertical</li>
+            <li><b>Cámara fotografica: </b>Pantallazo .png</li>
+            <li><b>Lupa: </b>ZOOM</li>
+            <li><b>Cruzeta: </b>DESLIZ vertical/horizontal</li>
+            <li><b>Flechas curvas: </b>ROTACIÓN 3D libre</li>
+            <li><b>Círculo con "Z": </b>ROTACIÓN 3D sobre eje central</li>
+            <li><b>Casa: </b>Vista Inicial</li>
+          </ul>
+        <li><b>Computador:</b></li>
+          <ul>
+            <li><b>1 click izquierdo sostenido:</b> ROTACIÓN 3D.</li>
+            <li><b>1 click derecho sostenido :</b> DESLIZ vertical/horizontal.</li>
+            <li><b>2 movimiento de rueda del ratón:</b> ZOOM</li>
+          </ul>
+      </ul>
+    </div>
     
-  </ul>
-
+    
   <h2>Introducción</h2>
 
   <p>Hoy les invito a aprovechar los próximos minutos para explorar y discutir los efectos del sismo de magnitud 7.4 en Chocó.</p>
@@ -525,8 +555,9 @@
   <p><b>Nuestra hipotesis inicial fué que la migración de los fluidos presurizados de la placa Nazca causarian pequeños sismos durante varias semanas en la placa Sudamericana y que los enjambres ascenderian progresivamente.</b></p>
   <p><b>Ahora los datos muestran que durante la semana de Septiembre 22 las areas cercanas (~150km) al epicentro del terremoto Mw 7.4 se han vuelto a "estabilizar":</b></p>
 
+<div class="tabla-desliz">
 <div class="tabla-container">
-  <h3>Número de sismos semanales (300 km alrededor de Istmina, Chocó, M2-M8)</h3>
+  <h6>Número de sismos semanales (300 km alrededor de Istmina, Chocó, M2-M8)</h6>
 
   <table class="tabla-sismos">
     <thead>
@@ -556,101 +587,101 @@
     <tbody>
       <tr class="fila-base">
         <td><b>Julio</b> (Medición Base y Semanal)</td>
-        <td class="celda-verde-lima">~2 a 5</td><td class="celda-verde-lima">3.9</td>
-        <td class="celda-verde-lima">~5-8</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">~2-3</td><td class="celda-verde-lima">3.4</td>
-        <td class="celda-verde-lima">~3-6</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">~3-10</td><td class="celda-verde-lima">—</td>
+        <td class="celda-verde-lima">~2 a 5</td><td class="celda-verde-lima celdadiv">3.9</td>
+        <td class="celda-verde-lima">~5-8</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">~2-3</td><td class="celda-verde-lima celdadiv">3.4</td>
+        <td class="celda-verde-lima">~3-6</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">~3-10</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Ago 5-9</b> (Pre)</td>
-        <td class="celda-verde-lima">10</td><td class="celda-verde-lima">3.7</td>
-        <td class="celda-verde-lima">0</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">1</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">6</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">5</td><td class="celda-verde-lima">—</td>
+        <td class="celda-verde-lima">10</td><td class="celda-verde-lima celdadiv">3.7</td>
+        <td class="celda-verde-lima">0</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">1</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">6</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">5</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr class="fila-evento">
         <td><b>Ago 10</b> (Sismo)</td>
-        <td class="celda-verde-lima">3</td><td class="celda-verde-lima">—</td>
-        <td class="celda-naranja">3/día</td><td class="celda-naranja">3.5</td>
-        <td class="celda-rojo">13/día</td><td class="celda-rojo">—</td>
-        <td class="celda-rojo">37/día</td><td class="celda-rojo">7.4</td>
-        <td class="celda-verde-lima">1</td><td class="celda-verde-lima">—</td>
+        <td class="celda-verde-lima">3</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-naranja">3/día</td><td class="celda-naranja celdadiv">3.5</td>
+        <td class="celda-rojo">13/día</td><td class="celda-rojo celdadiv">—</td>
+        <td class="celda-rojo">37/día</td><td class="celda-rojo celdadiv">7.4</td>
+        <td class="celda-verde-lima">1</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr class="fila-evento">
         <td><b>Ago 11</b> (Réplicas)</td>
-        <td class="celda-naranja">8/día</td><td class="celda-naranja">—</td>
-        <td class="celda-naranja">8/día</td><td class="celda-naranja">3.9</td>
-        <td class="celda-rojo">11/día</td><td class="celda-rojo">—</td>
-        <td class="celda-rojo">25/día</td><td class="celda-rojo">3.9</td>
-        <td class="celda-verde-lima">1</td><td class="celda-verde-lima">—</td>
+        <td class="celda-naranja">8/día</td><td class="celda-naranja celdadiv">—</td>
+        <td class="celda-naranja">8/día</td><td class="celda-naranja celdadiv">3.9</td>
+        <td class="celda-rojo">11/día</td><td class="celda-rojo celdadiv">—</td>
+        <td class="celda-rojo">25/día</td><td class="celda-rojo celdadiv">3.9</td>
+        <td class="celda-verde-lima">1</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Ago 12-18</b></td>
-        <td class="celda-rojo">29</td><td class="celda-rojo">3.4</td>
-        <td class="celda-rojo">117</td><td class="celda-rojo">3.4</td>
-        <td class="celda-naranja">27</td><td class="celda-naranja">—</td>
-        <td class="celda-naranja">46</td><td class="celda-naranja">4.2</td>
-        <td class="celda-verde-lima">4</td><td class="celda-verde-lima">—</td>
+        <td class="celda-rojo">29</td><td class="celda-rojo celdadiv">3.4</td>
+        <td class="celda-rojo">117</td><td class="celda-rojo celdadiv">3.4</td>
+        <td class="celda-naranja">27</td><td class="celda-naranja celdadiv">—</td>
+        <td class="celda-naranja">46</td><td class="celda-naranja celdadiv">4.2</td>
+        <td class="celda-verde-lima">4</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Ago 19-25</b></td>
-        <td class="celda-rojo">34</td><td class="celda-rojo">4.0</td>
-        <td class="celda-rojo">163</td><td class="celda-rojo">4.1</td>
-        <td class="celda-amarillo">8</td><td class="celda-amarillo">3.8</td>
-        <td class="celda-amarillo">14</td><td class="celda-amarillo">—</td>
-        <td class="celda-verde-lima">9</td><td class="celda-verde-lima">—</td>
+        <td class="celda-rojo">34</td><td class="celda-rojo celdadiv">4.0</td>
+        <td class="celda-rojo">163</td><td class="celda-rojo celdadiv">4.1</td>
+        <td class="celda-amarillo">8</td><td class="celda-amarillo celdadiv">3.8</td>
+        <td class="celda-amarillo">14</td><td class="celda-amarillo celdadiv">—</td>
+        <td class="celda-verde-lima">9</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Ago 26 – Sep 1</b></td>
-        <td class="celda-amarillo">16</td><td class="celda-amarillo">4.0</td>
-        <td class="celda-naranja">88</td><td class="celda-naranja">4.0</td>
-        <td class="celda-amarillo">6</td><td class="celda-amarillo">—</td>
-        <td class="celda-amarillo">7</td><td class="celda-amarillo">—</td>
-        <td class="celda-verde-lima">6</td><td class="celda-verde-lima">—</td>
+        <td class="celda-amarillo">16</td><td class="celda-amarillo celdadiv">4.0</td>
+        <td class="celda-naranja">88</td><td class="celda-naranja celdadiv">4.0</td>
+        <td class="celda-amarillo">6</td><td class="celda-amarillo celdadiv">—</td>
+        <td class="celda-amarillo">7</td><td class="celda-amarillo celdadiv">—</td>
+        <td class="celda-verde-lima">6</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Sep 2-8</b></td>
-        <td class="celda-amarillo">25</td><td class="celda-amarillo">3.6</td>
-        <td class="celda-amarillo">44</td><td class="celda-amarillo">4.0</td>
-        <td class="celda-verde-claro">8</td><td class="celda-verde-claro">4.2</td>
-        <td class="celda-verde-claro">7</td><td class="celda-verde-claro">2.5</td>
-        <td class="celda-verde-lima">9 <small>(1 en Cali, Mw 2.1)</small></td><td class="celda-verde-lima">3.6</td>
+        <td class="celda-amarillo">25</td><td class="celda-amarillo celdadiv">3.6</td>
+        <td class="celda-amarillo">44</td><td class="celda-amarillo celdadiv">4.0</td>
+        <td class="celda-verde-claro">8</td><td class="celda-verde-claro celdadiv">4.2</td>
+        <td class="celda-verde-claro">7</td><td class="celda-verde-claro celdadiv">2.5</td>
+        <td class="celda-verde-lima">9 <small>(1 en Cali, Mw 2.1)</small></td><td class="celda-verde-lima celdadiv">3.6</td>
       </tr>
 
       <tr>
         <td><b>Sep 9-15</b></td>
-        <td class="celda-naranja">27</td><td class="celda-naranja">3.4</td>
-        <td class="celda-naranja">88</td><td class="celda-naranja">4.9</td>
-        <td class="celda-verde-lima">1</td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-claro">5</td><td class="celda-verde-claro">3.4</td>
-        <td class="celda-verde-lima">4</td><td class="celda-verde-lima">—</td>
+        <td class="celda-naranja">27</td><td class="celda-naranja celdadiv">3.4</td>
+        <td class="celda-naranja">88</td><td class="celda-naranja celdadiv">4.9</td>
+        <td class="celda-verde-lima">1</td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-claro">5</td><td class="celda-verde-claro celdadiv">3.4</td>
+        <td class="celda-verde-lima">4</td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Sep 16-22</b></td>
-        <td class="celda-amarillo">337 <small>(~270 sismos en Tolima)</small></td><td class="celda-amarillo">4.4</td>
-        <td class="celda-naranja">120 <small>(mayoría occurió en Tolima)</small></td><td class="celda-naranja">4.7</td>
-        <td class="celda-verde-lima">0 </td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">5 </td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">2 </td><td class="celda-verde-lima">—</td>
+        <td class="celda-amarillo">337 <small>(~270 sismos en Tolima)</small></td><td class="celda-amarillo celdadiv">4.4</td>
+        <td class="celda-naranja">120 <small>(mayoría occurió en Tolima)</small></td><td class="celda-naranja celdadiv">4.7</td>
+        <td class="celda-verde-lima">0 </td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">5 </td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">2 </td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
 
       <tr>
         <td><b>Sep 23-29</b></td>
-        <td class="celda-verde-claro">197 <small>(~193 en Tolima, 1 en Antioquia)</small></td><td class="celda-verde-claro">4.5</td>
-        <td class="celda-amarillo">2 <small>(ambos en Istmina,Chocó)</small></td><td class="celda-amarillo">3.2</td>
-        <td class="celda-verde-lima">0 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">3 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima">—</td>
-        <td class="celda-verde-lima">1 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima">—</td>
+        <td class="celda-verde-claro">197 <small>(~193 en Tolima, 1 en Antioquia)</small></td><td class="celda-verde-claro celdadiv">4.5</td>
+        <td class="celda-amarillo">2 <small>(ambos en Istmina,Chocó)</small></td><td class="celda-amarillo celdadiv">3.2</td>
+        <td class="celda-verde-lima">0 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">3 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">1 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
       
       <tr class="fila-futuro">
@@ -667,8 +698,10 @@
     <b>Mw</b> = Magnitud maxima de los sismos semanales por encima de Mw 3.
   </p>
 </div>
+</div>
+
 <div class="leyenda-intensidad">
-  <span class="leyenda-titulo">Intensidad de actividad sísmica:</span>
+  <span class="leyenda-titulo">Cantidad de actividad sísmica:</span>
   <span class="leyenda-item"><span class="muestra celda-verde-lima"></span> Muy baja</span>
   <span class="leyenda-item"><span class="muestra celda-verde-claro"></span> Baja</span>
   <span class="leyenda-item"><span class="muestra celda-amarillo"></span> Moderada</span>
@@ -719,80 +752,91 @@
 
   <div class="donaciones">
     <h4>¿Quieres y puedes?</h4>
-    <h6>Durante este Septiembre dona a tu proyecto de amor y amistad favorito</h6>
+    <h6>Durante este mes de Septiembre dona a tu proyecto favorito de amor y amistad</h6>
 
-    <h3>**Divulgación de información y alertas ambientales**</h3>
-    <ol>
-      <li>Discos duros usados en buen estado.</li>
-      <li>Portátiles o celulares usados (pueden tener pantallas y baterías dañadas).</li>
-      <li>Pantalla usada en buen estado con conexión VGA y/o HDMI.</li>
-      <li>Dominio web x 3 para publicar otras aplicaciones ej: "www.dominio.org"<span class="precio"> ~$50k anual</span></li>
+    <div class="proyectos">
+      <h3>**Divulgación de información y alertas ambientales**</h3>
+      <ol>
+        <li>Discos duros usados en buen estado.</li>
+        <li>Portátiles o celulares usados (pueden tener pantallas y baterías dañadas).</li>
+        <li>Pantalla usada en buen estado con conexión VGA y/o HDMI.</li>
+        <li>Dominio web x 3 para publicar otras aplicaciones ej: "www.dominio.org"<span class="precio"> ~$50k anual</span></li>
       <p>Queremos incrementar nuestra capacidad de almacenamiento, computación, y publicar varias aplicaciones con direcciones web mas simples por ejemplo: <em>sismos.org, incendios.org, colombiahumanitaria.org</em></p>
-    </ol>
-
-    <h3>**Computación y simulación númerica de riesgos**</h3>
-    <ol>
-      <li>Intel Core Extreme i7 3840QM/3920XM/3940XM 4CPU 8MB G2 usado <span class="precio"> ~260k COP</span></li>
-      <li>Memorias RAM 6x32GB DDR4 ECC <span class="precio"> ~600k COP cada una</span></li>
-      <p>Estos componentes incrementaran nuestra capacidad computacional y capacidad de atención durante emergencias y proyectos humanitarios por medio de nuestro servidor dedicado</p>
-    </ol></h3>
-
-    <h3>**Ecología**</h3>
-    <ol>
-      <li>5000 larvas de escarabajo <span class="precio"> $60k x 1k larvas</span> (Bioreciclaje de plásticos)</li>
-      <li>Aerador de estanque 100GPH-1000GPH <span class="precio"> ~$50k-$500k</span> (Cría de anisopteras)  </li>
-      <li>Discos de aire submergibles 5"/12cm <span class="precio"> ~$90k por 4 discos</span> (Cría de anisopteras)</li> 
-      <li>Microscopio B120C o similar bifocal 25x-2000x <span class="precio"> ~$300k - 1.5M</span></li>
-      <p>Proyecto 1: Control biologico de zancudos transmisores de fiebre amarilla, dengue, chikonguña durante su migración a mayores altitudes durante el fénomeno del niño: <em>Al principio la selva llegaba a la montaña, hoy solo llegan los zancudos -anon</em></p>
-      <p>Proyecto 2: Investigar la decomposición biologica de plasticos y microplasticos por medio de la crianza de escarabajos</p>
-    </ol>
+      </ol>
+    </div>
     
-     <h3>**Sistemas RF**</h3>
-    <ol>
-      <li>ADALM-Pluto (SDR 325 MHz–3.8 GHz)	<span class="precio"> ~$1.0M</span</li>
-      <li>Antena PCB 2.4 GHz 3dBi x 5 <span class="precio">~$12k cada una</span></li>
-      <li>Módulo ADF4351 (VCO/PLL) <span class="precio">~$60k</span></li>
-      <li>LNA 2.4 GHz (ej. BGA824N6) x 4 <span class="precio">~$8k cada uno</span></li>
-      <li>Divisor/combinador coaxial 4 vías SMA <span class="precio">~$60k</span></li>
-      <li>Cable coaxial SMA 15cm x 8 <span class="precio">~$12k cada uno</span></li>
-      <li>Conectores SMA hembra PCB x 10 <span class="precio">~$6k cada uno</span></li>
-      <li>Filtro pasa-banda 2.4 GHz<span class="precio">~$48k</span></li>
-      <li>Reguladores DC-DC 12V ~5A x 3 <span class="precio">~$12k cada uno</span></li>
-      <p>Estos componentes se usan para componer radares con la capacidad de distinguir respiración y latidos de corazón entre escombros <em>Estos son los componentes para un producto economico y distribuible</em></p>
-    </ol>
-
-    <h3>**Gestión de incendios forestales**</h3>
-    <ol>
-      <li>Generador de tonos DDS AD9850 <span class="precio"> ~$40k</span></li>
-      <li>Celdas cilíndricas LiFePO<sub>4</sub> 3.2V 48Wh x 15 <span class="precio"> ~$20k cada una</span></li>
-      <li>18" Woofer usado en buen estado o los siguientes componentes:
-        <ul>
-          <li>Calibrador de centrado 2.5" <span class="precio"> ~$16k</span></li>
-          <li>Araña de suspensión 18" Fs 55Hz <span class="precio"> ~$40k</span></li>
-          <li>Surround Caucho/espuma 18" <span class="precio"> ~$50k</span></li>
-          <li>Bobina móvil 2.5" 4Ω AWG 18 <span class="precio"> ~$60k</span></li>
-          <li>Chasis de subwoofer vacío 18" <span class="precio"> ~$160k</span></li>
-          <li>Imán de neodimio anular N42 150x60x20mm <span class="precio"> ~$300k</span></li>
-        </ul>
-      </li>
-      <p>Estos componentes forman un extintor robotico y portable capaz de dos logros, 1. extinguir llamas de 2m de altura desde una distancia de 50m, y 2. contener/debilitar llamas de 2m a 100m de distancia. Por ahora es exclusivamente para uso rural/forestal, eventualmente podriamos retomar una variante urbana.</p>
-    </ol>
-
-    <h3>**Prevención de incendios y deforestación**</h3>
-    <ol>
-      <li>Cable coaxial RG-316</li>
-      <li>Módulos ESP32-CAM-MB OV2640<span class="precio"> ~$20k</span</li>
-      <li>ESP32-WROOM-32E DevKit <span class="precio">~$25k</span></li>
-      <li>Módulo ADF4351 (VCO/PLL) <span class="precio">~$60k</span></li>
-      <li>Amplificador PA 2.4 GHz 2W <span class="precio">~$70k</span></li>
-      <li>LNA SPF5189Z Amplificador <span class="precio">~$30k</span></li>
-      <li>Mini-Circuits ZMX-10G o similar <span class="precio">~$30k</span></li>
-      <li>Antena Panel/Yagi 2.4 GHz 15 dBi <span class="precio">~$90k</span></li>
-      <li>Módulo GPS Quectel L76K <span class="precio">~$24k</span></li>
-      <li>Módulo UWB DWM1000 <span class="precio">~$60k</span></li>
-      <p>Estos componentes hacen parte de una red de monitoreo ambiental activo para zonas rurales/forestales y bordes urbanos, por medio de radares, drones, reconocimineto de imagenes</p>
-    </ol>
-
+    <div class="proyectos">
+      <h3>**Computación y simulación númerica de riesgos**</h3>
+      <ol>
+        <li>Intel Core Extreme i7 3840QM/3920XM/3940XM 4CPU 8MB G2 usado <span class="precio"> ~260k COP</span></li>
+        <li>Memorias RAM 6x32GB DDR4 ECC <span class="precio"> ~600k COP cada una</span></li>
+        <p>Estos componentes incrementaran nuestra capacidad computacional y capacidad de atención durante emergencias y proyectos humanitarios por medio de nuestro servidor dedicado</p>
+      </ol></h3>
+    </div>
+    
+    <div class="proyectos">
+      <h3>**Ecología**</h3>
+      <ol>
+        <li>5000 larvas de escarabajo <span class="precio"> $60k x 1k larvas</span> (Bioreciclaje de plásticos)</li>
+        <li>Aerador de estanque 100GPH-1000GPH <span class="precio"> ~$50k-$500k</span> (Cría de anisopteras)  </li>
+        <li>Discos de aire submergibles 5"/12cm <span class="precio"> ~$90k por 4 discos</span> (Cría de anisopteras)</li> 
+        <li>Microscopio B120C o similar bifocal 25x-2000x <span class="precio"> ~$300k - 1.5M</span></li>
+        <p>Proyecto 1: Control biologico de zancudos transmisores de fiebre amarilla, dengue, chikonguña durante su migración a mayores altitudes durante el fénomeno del niño: <em>Al principio la selva llegaba a la montaña, hoy solo llegan los zancudos -anon</em></p>
+        <p>Proyecto 2: Investigar la decomposición biologica de plasticos y microplasticos por medio de la crianza de escarabajos</p>
+      </ol>
+    </div>
+      
+    <div class="proyectos">
+      <h3>**Sistemas RF**</h3>
+      <ol>
+        <li>ADALM-Pluto (SDR 325 MHz–3.8 GHz)	<span class="precio"> ~$1.0M</span</li>
+        <li>Antena PCB 2.4 GHz 3dBi x 5 <span class="precio">~$12k cada una</span></li>
+        <li>Módulo ADF4351 (VCO/PLL) <span class="precio">~$60k</span></li>
+        <li>LNA 2.4 GHz (ej. BGA824N6) x 4 <span class="precio">~$8k cada uno</span></li>
+        <li>Divisor/combinador coaxial 4 vías SMA <span class="precio">~$60k</span></li>
+        <li>Cable coaxial SMA 15cm x 8 <span class="precio">~$12k cada uno</span></li>
+        <li>Conectores SMA hembra PCB x 10 <span class="precio">~$6k cada uno</span></li>
+        <li>Filtro pasa-banda 2.4 GHz<span class="precio">~$48k</span></li>
+        <li>Reguladores DC-DC 12V ~5A x 3 <span class="precio">~$12k cada uno</span></li>
+        <p>Estos componentes se usan para componer radares con la capacidad de distinguir respiración y latidos de corazón entre escombros <em>Estos son los componentes para un producto economico y distribuible</em></p>
+      </ol>
+    </div>
+    
+    <div class="proyectos">
+      <h3>**Gestión de incendios forestales**</h3>
+      <ol>
+        <li>Generador de tonos DDS AD9850 <span class="precio"> ~$40k</span></li>
+        <li>Celdas cilíndricas LiFePO<sub>4</sub> 3.2V 48Wh x 15 <span class="precio"> ~$20k cada una</span></li>
+        <li>18" Woofer usado en buen estado o los siguientes componentes:
+          <ul>
+            <li>Calibrador de centrado 2.5" <span class="precio"> ~$16k</span></li>
+            <li>Araña de suspensión 18" Fs 55Hz <span class="precio"> ~$40k</span></li>
+            <li>Surround Caucho/espuma 18" <span class="precio"> ~$50k</span></li>
+            <li>Bobina móvil 2.5" 4Ω AWG 18 <span class="precio"> ~$60k</span></li>
+            <li>Chasis de subwoofer vacío 18" <span class="precio"> ~$160k</span></li>
+            <li>Imán de neodimio anular N42 150x60x20mm <span class="precio"> ~$300k</span></li>
+          </ul>
+        </li>
+        <p>Estos componentes forman un extintor robotico y portable capaz de dos logros, 1. extinguir llamas de 2m de altura desde una distancia de 50m, y 2. contener/debilitar llamas de 2m a 100m de distancia. Por ahora es exclusivamente para uso rural/forestal, eventualmente podriamos retomar una variante urbana.</p>
+      </ol>
+    </div>
+    
+    <div class="proyectos">
+      <h3>**Prevención de incendios y deforestación**</h3>
+      <ol>
+        <li>Cable coaxial RG-316</li>
+        <li>Módulos ESP32-CAM-MB OV2640<span class="precio"> ~$20k</span</li>
+        <li>ESP32-WROOM-32E DevKit <span class="precio">~$25k</span></li>
+        <li>Módulo ADF4351 (VCO/PLL) <span class="precio">~$60k</span></li>
+        <li>Amplificador PA 2.4 GHz 2W <span class="precio">~$70k</span></li>
+        <li>LNA SPF5189Z Amplificador <span class="precio">~$30k</span></li>
+        <li>Mini-Circuits ZMX-10G o similar <span class="precio">~$30k</span></li>
+        <li>Antena Panel/Yagi 2.4 GHz 15 dBi <span class="precio">~$90k</span></li>
+        <li>Módulo GPS Quectel L76K <span class="precio">~$24k</span></li>
+        <li>Módulo UWB DWM1000 <span class="precio">~$60k</span></li>
+        <p>Estos componentes hacen parte de una red de monitoreo ambiental activo para zonas rurales/forestales y bordes urbanos, por medio de radares, drones, reconocimineto de imagenes</p>
+      </ol>
+    </div>
   </div>
 
 </div>
