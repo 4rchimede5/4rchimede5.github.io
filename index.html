@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=85vw">
     <title>Secuencia Sísmica del Chocó — 2026</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
     <style>
       <style>
   /* ===== Paleta =====
@@ -16,8 +17,8 @@
   body {
     background-color: #fafaf5;
     font-family: 'Helvetica', Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    margin: 10px;
+    padding: 5px;
   }
   
   /*texto principal*/
@@ -353,43 +354,103 @@
   border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+.loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+    color: #98062A;
+}
+
+#mapa {
+    width: 80vw;      /* Ancho completo del contenedor */
+    min-height: 500px; /* Altura mínima para móviles */
+    max-height: 1200px; /* Altura máxima para pantallas grandes */
+}
 </style>
 
     </style>
     </head>
     <body>
-      <div id="mapa">
-        <div class="loading">Cargando datos sísmicos...</div>
-      </div>>
+      <div id="loading" class="loading">Cargando datos sísmicos...</div>
+      <div id="mapa"></div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
       <script>
-        document.addEventListener('DOMCOntentLoaded',function(){
-          const URL_DATOS ='https://github.com/4rchimede5/4rchimede5.github.io/datos_sismos.json';          
+        // Si Plotly no se cargó, cargar desde otro CDN
+        if (typeof Plotly === 'undefined') {
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');
+        }
+     </script>
+     <script>
+      document.addEventListener('DOMContentLoaded',function(){
+        const URL_DATOS ='https://4rchimede5.github.io/datos_sismos.json.gz';          
         fetch(URL_DATOS)
-          .then(response => response.arrayBuffer())
+          .then(response => {
+            console.log('Funcionamiento de Plotly;',typeof Plotly)
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.arrayBuffer();  // ← JSON pako
+          })
           .then(buffer =>{
-            const decompressed = pako.inflate(new Uint8Array(buffer), {to:'string'};
+            const decompressed = pako.inflate(new Uint8Array(buffer), {to:'string'});
             const data = JSON.parse(decompressed);
+            return data
           })
           
-        .then(data => {
-          console.log('Tipo de data:', typeof data);
-          console.log('Claves de data:', Object.keys(data));
-          console.log('Tipo de data.data:', typeof data.data);
-          console.log('Longitud de data.data:', data.data ? data.data.length : 'undefined');
-          console.log('Tipo de data.layout:', typeof data.layout);
-          console.log('Primeros 500 caracteres:', JSON.stringify(data).substring(0, 500));
-          
-          Plotly.react('mapa', data.data, data.layout, {frames: data.frames}, {
-            responsive: true,
-            sisplayModeBar: true
-          });
-        })
-        .catch(error => {
-          document.getElementById('mapa').innerHTML = 
-           '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos.</div>';
+          .then(data => {
+            console.log('Datos cargados');
+            console.log('Tipo de data:', typeof data);
+            console.log('Claves de data:', Object.keys(data));
+            console.log('Tipo de data.data:', typeof data.data);
+            console.log('Longitud de data.data:', data.data ? data.data.length : 'undefined');
+            console.log('Tipo de data.layout:', typeof data.layout);
+            console.log('Primeros 50 caracteres:', JSON.stringify(data).substring(0, 50));
+            
+            document.getElementById('loading').style.display = 'none';
+            // Eliminar width y height del layout
+            delete data.layout.width;
+            delete data.layout.height;
+    
+            // Opcional: forzar autosize
+            data.layout.autosize = true;
+                              
+            Plotly.react('mapa', data.data, data.layout, {frames: data.frames}, {
+              responsive: true,
+              autosize: true,
+              displayModeBar: true
             });
-      </script>
+            
+            // Función debounce: retrasa la ejecución hasta que pasen N ms sin llamadas
+            function debounce(func, wait) {
+              let timeout;
+              return function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(func, wait);
+              };
+            }
+            
+            function resizeMapa() { Plotly.Plots.resize('mapa');}
+            
+            const resizeDebounced = debounce(resizeMapa, 350);
+            
+            window.addEventListener('resize', resizeDebounced);
+            
+            const mapaElement = document.getElementById('mapa');
+
+            if (window.ResizeObserver) {
+              const resizeObserver = new ResizeObserver(resizeMapa);
+              resizeObserver.observe(mapaElement);
+            } else {
+              window.addEventListener('resize', resizeDebounced);
+              };
+            })
+            
+        .catch(error => {
+          console.error('Error:',error);
+          document.getElementById('mapa').innerHTML = 
+            '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos.</div>';
+        });
+      });
+     </script>
       <div class="resena">
 
   <div class="aviso">
