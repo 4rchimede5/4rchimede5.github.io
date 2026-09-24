@@ -358,11 +358,25 @@
     </style>
     </head>
     <body>
-      <div id="mi-mapa">
-        <div class="loading">Cargando datos sísmicos...</div>
-      </div>
-      // Cargar los datos desde el hosting externo
-      <script src="https://github.com/4rchimede5/4rchimede5.github.io/releases/tag/v9.24-datos/datos_sismos.js"></script>
+      <script>
+        fetch('https://corsproxy.io/?'+encodeURIComponent('https://github.com/4rchimede5/4rchimede5.github.io/releases/tag/v9.24-datos/datos_sismos.json'))
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al cargar los datos: ' + response.status);
+                }
+                return response.json();
+        })
+        .then(data => {
+          Plotly.newPlot('mi-mapa', data.data, data.layout, {
+            responsive: true,
+            sisplayModeBar: true
+          });
+        })
+        .catch(error => {
+          document.getElementById('mi-mapa').innerHTML = 
+          '<div class="loading">Error al cargar los datos: ' + error.message + '</div>';
+            });
+      </script>
       <script>
         // Los datos ya están en window.DATOS_SISMOS
         Plotly.newPlot('mi-mapa', window.DATOS_SISMOS.data, window.DATOS_SISMOS.layout, {
@@ -370,7 +384,6 @@
           displayModeBar: true
         });
       </script>
-      // Cargar reseña
       <div class="resena">
 
   <div class="aviso">
