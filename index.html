@@ -35,7 +35,7 @@
   #mapa {
     height: 80vh;
     min-height: 400px;
-    touch-action: none
+    touch-action: none;
     }
   
   #controles {
@@ -273,7 +273,7 @@
   }
 
   .instrucciones {
-    column-count: 2;        /* Divide en 2 columnas */
+    column-count: 3;        /* Divide en 2 columnas */
     column-gap: 10px;       /* Separación entre columnas */
     column-rule: 1px solid #AEAF46;  /* Línea divisoria (opcional) */
 }
@@ -500,7 +500,7 @@
       let frameActual = 0;
       let animando = false;
       let camaraActual = null;
-      const DURACION_FRAME = 250; // ms por frame    
+      const DURACION_FRAME = 100; // ms por frame    
   
       // ===== 1. Cargar datos =====  
       fetch(URL_DATOS)
@@ -765,16 +765,20 @@
     <div class="resena">
 
   <div class="aviso">
-    <b>⚠️ Recomendación:</b> Pausa la animación antes de rotar el gráfico o hacer zoom, o antes de explorar la discusión.
+    <div><b>⚠️ Recomendación:</b> Lee la introducción y explora la discusión.</div>
+    <div><b>⚠️ Recomendación:</b> Pausa la animación antes de rotar, panear o hacer zoom en el grafico.
+    <div>Los sismos cargan uno por uno pero puedes deslizar la barra para adelantar a la fecha que te interese (más adelante habra la opción de acelerar la animación de sismos).</div>
   </div>
+  
 
   <h2>Leyenda</h2>
-  <ul>
-    <li>El tamaño de la esfera es proporcional a la <b>magnitud</b> del sismo.</li>
-    <li>El color de la esfera corresponde a la <b>profundidad</b> del sismo.</li>
-    <li><b>Sismos PRE Mw 7.4:</b> Azul oscuro (más profundo) → Azul claro (menos profundo).</li>
-    <li><b>Sismos POS Mw 7.4:</b> Amarillo (más profundo) → Rojo oscuro (menos profundo).</li>
+  <div class="instrucciones"><ul>
+    <li>El tamaño del punto es proporcional a la <b>magnitud</b> del sismo.</li>
+    <li>El color del punto varía con la <b>profundidad</b> del sismo.</li>
+    <li><b>Sismo previo a Mw 7.4:</b> Azul oscuro (profundo) → Azul claro (superficial).</li>
+    <li><b>Sismo posterior a Mw 7.4:</b> Amarillo (profundo) → Rojo oscuro (superficial).</li>
   </ul>
+  </div>
   
   
    <h2>Controles</h2>
@@ -782,29 +786,22 @@
       <li><b>"Animar":</b> reproducir secuencia de sismos.</li>
       <li><b>"Pausar":</b> pausar la secuencia.</li>
       <li>Haz <b>clíck</b> en la leyenda (parte superior derecha) para activar/desactivar los sismos PRE o POS terremoto, o las poblaciones.</li>
-      <li>Los sismos cargan uno por uno pero puedes deslizar la barra para adelantar a la fecha que te interese (más adelante habra la opción de acelerar la animación de sismos).</li>
     </ul>
     <div class="instrucciones">
       <ul>
         <li><b>Móviles/Tabletas:</b></li>
-          <ul>
-            <li><b>1 dedo (arrastrar) :</b> ROTACIÓN </li>
-            <li><b>2 dedos (pellizcar):</b> ZOOM </li>
-            <li><b>2 dedos (arrastras) :</b> PANEO </li>
-            <li><b>1 toque:</b> FIJAR VISTA</li>
-          </ul>
+            <div><b>1 Click:</b> FIJAR VISTA</div>
+            <div><b>1 dedo (arrastre) :</b> ROTACIÓN </div>
+            <div><b>2 dedos (pellizcar):</b> ZOOM </div>
+            <div><b>2 dedos (arrastre) :</b> PANEO </div>
         <li><b>Mouse/Ratón:</b></li>
-          <ul>
-            <li><b>Click izquierdo sostenido:</b> ROTACIÓN.</li>
-            <li><b>Click derecho sostenido :</b> PANEO</li>
-            <li><b>Rueda del ratón:</b> ZOOM</li>
-          </ul>
+            <div><b>Click izq.:</b> ROTACIÓN.</div>
+            <div><b>Click der.:</b> PANEO</div>
+            <div><b>Rueda del ratón:</b> ZOOM</div>
         <li><b>Teclado:</b></li>
-          <ul>
-            <li><b>Espacio:</b> ANIMAR/PAUSAR</li>
-            <li><b>Flecha izquierda:</b> PREVIO</li>
-            <li><b>Flecha derecha:</b> SIGUIENTE</li>
-          </ul>
+            <div><b>Espacio:</b> ANIMAR/PAUSAR</div>
+            <div><b>Flecha izquierda:</b> PREVIO</div>
+            <div><b>Flecha derecha:</b> SIGUIENTE</div>
       </ul>
     </div>
     
