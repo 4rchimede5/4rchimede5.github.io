@@ -1,18 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, height=80vh, initial-scale=1.0"">
     <title>Sismos Colombia</title>
+    
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    
     <script data-goatcounter="https://colsismos.goatcounter.com/count"async src="//gc.zgo.at/count.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-      <script>
-        // Si Plotly no se cargó, cargar desde otro CDN
-        if (typeof Plotly === 'undefined') {
-        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');
-        }
-     </script>
+    <script>// Si Plotly no se cargó, cargar desde otro CDN
+      if (typeof Plotly === 'undefined') {
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');}
+    </script>
+     
     <style>
       <style>
   /* ===== Paleta =====
@@ -28,6 +31,73 @@
     margin: 0;
     padding: 0;
   }
+  
+  #mapa {
+    height: 80vh;
+    min-height: 400px;
+    }
+  
+  #controles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background-color: rgba(174, 175, 70, 0.10);
+    border-top: 2px solid #AEAF46;
+    flex-wrap: wrap;
+  }
+  
+        #controles button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #98062A;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #controles button:hover {
+            background-color: #AD626F;
+        }
+        
+        #controles button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #controles .reset {
+            background-color: #020228;
+        }
+        
+        #controles .reset:hover {
+            background-color: #333366;
+        }
+        
+        #info-frame {
+            font-size: 14px;
+            color: #020228;
+            font-weight: bold;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        #slider-container {
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #slider-frame {
+            width: 80%;
+            max-width: 800px;
+        }
   
   /*texto principal*/
   .resena {
@@ -400,82 +470,300 @@
 </style>
 
     </style>
-    </head>
-    <body>
-      <div id="loading" class="loading">Cargando datos sísmicos...</div>
-      <div id="mapa"></div>
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const URL_DATOS = 'https://4rchimede5.github.io/datos_sismos.json.gz';
+  </head>
     
-        fetch(URL_DATOS)
-          .then(response => {
-            console.log('Plotly disponible:', typeof Plotly);
-            if (!response.ok) throw new Error('HTTP ' + response.status);
-              return response.arrayBuffer();
-          })
-          .then(buffer => {
-            const decompressed = pako.inflate(new Uint8Array(buffer), {to: 'string'});
-            return JSON.parse(decompressed);
-          })
-          .then(data => {
-            window.data = data;
-            console.log('Datos cargados');
-            console.log('Frames:', data.frames ? data.frames.length : 'undefined');
+  <body>
+    <div id="mapa">
+      <div id="loading" class="loading">Cargando datos sísmicos...</div>
+    </div>
+      
+    <div id="controles">
+      <button id="btn-play">▶ Animar</button>
+      <button id="btn-pause" disabled>⏸ Pausar</button>
+      <button id="btn-prev">⏮ Anterior</button>
+      <button id="btn-next">⏭ Siguiente</button>
+      <button id="btn-reset" class="reset">⟲ Reiniciar</button>
+      <span id="info-frame">Frame: 0 / 0</span>
+    </div>
+
+    <div id="slider-container">
+      <input type="range" id="slider-frame" min="0" max="0" value="0" step="1">
+    </div>
+  
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+      const URL_DATOS = 'https://4rchimede5.github.io/datos_sismos.json.gz';
+      
+      // Variables globales
+      let dataGlobal = null;
+      let frameActual = 0;
+      let animando = false;
+      let camaraActual = null;
+      const DURACION_FRAME = 250; // ms por frame    
+  
+      // ===== 1. Cargar datos =====  
+      fetch(URL_DATOS)
+        .then(response => {
+          console.log('Plotly disponible:', typeof Plotly);
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.arrayBuffer();
+        })
+        .then(buffer => {
+          const decompressed = pako.inflate(new Uint8Array(buffer), {to: 'string'});
+          return JSON.parse(decompressed);
+        })
+        .then(data => {
+          dataGlobal = data;
+          console.log('Datos cargados');
+          console.log('Frames:', data.frames ? data.frames.length : 'undefined');
             
-            // Eliminar width y height del layout
-            delete data.layout.width;
-            delete data.layout.height;
-            data.layout.autosize = true;
+          // Eliminar width y height del layout
+          delete data.layout.width;
+          delete data.layout.height;
+          data.layout.autosize = true;
+          
+          // Mantener el estado de la UI
+          data.layout.uirevision = 'mantener-camara';
+          
+          // Guardar la cámara inicial
+          camaraActual = data.layout.scene ? data.layout.scene.camera : {
+            eye: {x: 1.5, y: 1.5, z: 0.8},
+            up: {x: 0, y: 0, z: 1},
+            center: {x: 0, y: 0, z: 0}
+          };
             
-            // Renderizar el gráfico
-            Plotly.react('mapa', data.data, data.layout, {
-                responsive: true,
-                autosize: true,
-                displayModeBar: true
-            }).then(() => {
-                // ← Añadir frames DESPUÉS de newPlot
-                Plotly.addFrames('mapa', data.frames);
-                console.log('Frames añadidos');
-                
-                // Ocultar loading
-                const loading = document.getElementById('loading');
-                if (loading) loading.style.display = 'none';
-                
-                // Debounce para resize
-                function debounce(func, wait) {
-                    let timeout;
-                    return function() {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(func, wait);
-                    };
-                }
-                
-                function resizeMapa() {
-                    Plotly.Plots.resize('mapa');
-                }
-                
-                const resizeDebounced = debounce(resizeMapa, 200);
-                window.addEventListener('resize', resizeDebounced);
-                
-                const mapaElement = document.getElementById('mapa');
-                if (window.ResizeObserver) {
-                    const resizeObserver = new ResizeObserver(resizeMapa);
-                    resizeObserver.observe(mapaElement);
-                }
+          // Renderizar el gráfico
+          return Plotly.newPlot('mapa', data.data, data.layout, {
+            responsive: true,
+            scrollZoom:true,
+            doubleClick:'reset',
+            displayModeBar: false,
             });
         })
+        .then(() => {
+          // ← Añadir frames DESPUÉS de newPlot
+          return Plotly.addFrames('mapa', dataGlobal.frames);
+        })
+        .then(() => {
+          console.log('Frames añadidos');
+            
+          // Ocultar loading
+          const loading = document.getElementById('loading');
+          if (loading) loading.style.display = 'none';
+          
+          //Configurar controles
+          inicializarControles()
+          
+          //Escuchar cambios en la cámara
+          const mapa = document.getElementById('mapa');
+          mapa.on('plotly_relayout',function(eventData) {
+            if (eventData['scene.camera']){
+              camaraActual = eventData['scene.camera'];
+            }
+          });
+          
+          //Restaurar la cámara antes de cade frame
+          mapa.on('plotly_animatingframe',function() {
+            if (camaraActual) {
+              Plotly.relayout('mapa',{'scene.camera':camaraActual});
+            }
+          });
+          
+          //Configurar Resize
+          configurarResize();
+        })
         .catch(error => {
-            console.error('Error:', error);
-            const mapa = document.getElementById('mapa');
-            if (mapa) {
-                mapa.innerHTML = '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos: ' + error.message + '</div>';
+          console.error('Error:', error);
+          const mapa = document.getElementById('mapa');
+          if (mapa) {
+              mapa.innerHTML = '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos: ' + error.message + '</div>';
+          }
+        });
+          
+      // ===== 2. Inicializar controles =====
+      function inicializarControles() {
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnReset = document.getElementById('btn-reset');
+        const slider = document.getElementById('slider-frame');
+        const infoFrame = document.getElementById('info-frame');
+        
+        const totalFrames = dataGlobal.frames.length;
+        
+        // Configurar slider
+        slider.max = totalFrames - 1;
+        slider.value = 0;
+        actualizarInfoFrame();
+        
+        function pausarAnimacion() {
+            animando = false;
+            btnPlay.disabled = false;
+            btnPause.disabled = true;
+        }
+        
+        // Función recursiva de animación
+        function animarSiguienteFrame() {
+          if (!animando) return;
+    
+           if (frameActual >= dataGlobal.frames.length - 1) {
+            pausarAnimacion();
+            return;
+          }
+    
+          frameActual++;
+    
+          const frame = dataGlobal.frames[frameActual];
+    
+          Plotly.animate('mapa', frame, {
+            transition: {duration: 0},
+            frame: {duration: 0, redraw: false},
+             mode: 'immediate'
+          }).then(function() {
+            // Restaurar la cámara
+            if (camaraActual) {
+              Plotly.relayout('mapa', {'scene.camera': camaraActual});
+            }
+        
+            // Actualizar UI
+            slider.value = frameActual;
+            actualizarInfoFrame();
+        
+            // Esperar el tiempo del frame y pasar al siguiente
+            setTimeout(animarSiguienteFrame, DURACION_FRAME);
+          });
+        }
+          
+        // ===== Play =====
+        btnPlay.addEventListener('click', function() {
+          if (animando) return;
+            animando = true;
+            btnPlay.disabled = true;
+            btnPause.disabled = false;
+            
+            animarSiguienteFrame(); //// ← Iniciar la cadena
+        });
+        
+        // ===== Pause =====
+        btnPause.addEventListener('click', pausarAnimacion);
+        
+        // ===== Anterior =====
+        btnPrev.addEventListener('click', function() {
+            pausarAnimacion();
+            if (frameActual > 0) {
+                frameActual--;
+                irAFrame(frameActual);
             }
         });
-});
-</script>
-
-      <div class="resena">
+        
+        // ===== Siguiente =====
+        btnNext.addEventListener('click', function() {
+            pausarAnimacion();
+            if (frameActual < totalFrames - 1) {
+                frameActual++;
+                irAFrame(frameActual);
+            }
+        });
+        
+        
+        // ===== Reset =====
+        btnReset.addEventListener('click', function() {
+            pausarAnimacion();
+            frameActual = 0;
+            irAFrame(frameActual);
+            
+            // Restaurar cámara inicial
+            camaraActual = dataGlobal.layout.scene ? dataGlobal.layout.scene.camera : {
+                eye: {x: 1.5, y: 1.5, z: 0.8},
+                up: {x: 0, y: 0, z: 1},
+                center: {x: 0, y: 0, z: 0}
+            };
+            Plotly.relayout('mapa', {'scene.camera': camaraActual});
+        });
+        
+        // ===== Slider =====
+        slider.addEventListener('input', function() {
+            pausarAnimacion();
+            frameActual = parseInt(slider.value);
+            irAFrame(frameActual);
+        });
+        
+        // ===== Teclado =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                btnPrev.click();
+            } else if (e.key === 'ArrowRight') {
+                btnNext.click();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                if (animando) {
+                    pausarAnimacion();
+                } else {
+                    btnPlay.click();
+                }
+            }
+        });
+        
+        
+        
+        function irAFrame(indice) {
+            if (!dataGlobal || !dataGlobal.frames[indice]) return;
+            
+            const frame = dataGlobal.frames[indice];
+            
+            Plotly.animate('mapa', frame, {
+                transition: {duration: 0},
+                frame: {duration: 0, redraw: false},
+                mode: 'immediate'
+            }).then(function() {
+                // Restaurar la cámara después del frame
+                if (camaraActual) {
+                    Plotly.relayout('mapa', {'scene.camera': camaraActual});
+                }
+            });
+            
+            slider.value = indice;
+            actualizarInfoFrame();
+        }
+ //==========================fecha y hora de sismo=================       
+          function actualizarInfoFrame() {
+            const frame = dataGlobal.frames[frameActual];
+            const nombre = frame ? frame.name : '';
+            let fechaFormateada = nombre;
+            const fecha = new Date(nombre);
+            const total = dataGlobal.frames.length;
+            infoFrame.textContent = `Sismos: ${frameActual + 1} / ${totalFrames} — ${nombre}`;
+          }
+        }
+          
+      // ===== 3. Configurar resize =====
+      function configurarResize(){
+        // Debounce para resize
+        function debounce(func, wait) {
+              let timeout;
+              return function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(func, wait);
+               };
+            }
+                
+        function resizeMapa() {
+              Plotly.Plots.resize('mapa');
+        }
+                
+        const resizeDebounced = debounce(resizeMapa, 200);
+        window.addEventListener('resize', resizeDebounced);
+                
+        if (window.ResizeObserver) {
+          const resizeObserver = new ResizeObserver(resizeMapa);
+          resizeObserver.observe(document.getElementById('mapa'));
+        }
+      }
+    });
+  </script>
+    
+    <div class="resena">
 
   <div class="aviso">
     <b>⚠️ Recomendación:</b> Pausa la animación antes de rotar el gráfico o hacer zoom, o antes de explorar la discusión.
@@ -501,19 +789,19 @@
       <ul>
         <li><b>Celular (controles en borde superior):</b></li>
           <ul>
-            <li><b>1 dedo (arrastrar) :</b> ROTACIÓN vertical</li>
-            <li><b>2 dedos (pellizcar):</b> ZOOM vertical</li>
-            <li><b>2 dedos (arrastras) :</b> PANEAR/DESLIZAR </li>
+            <li><b>1 dedo (arrastrar) :</b> ROTACIÓN </li>
+            <li><b>2 dedos (pellizcar):</b> ZOOM </li>
+            <li><b>2 dedos (arrastras) :</b> PANEO </li>
             <li><b>Doble toque:</b> Reseat la vista</li>
             <li><b>Cámara fotografica: </b>Pantallazo .png</li>
             <li><b>Flechas curvas: </b>ROTACIÓN 3D libre</li>
-            <li><b>Círculo con "Z": </b>ROTACIÓN 3D sobre eje central</li>
+            <li><b>Círculo con "Z": </b>ROTACIÓN 3D en eje</li>
           </ul>
         <li><b>Computador:</b></li>
           <ul>
-            <li><b>1 click izquierdo sostenido:</b> ROTACIÓN 3D.</li>
-            <li><b>1 click derecho sostenido :</b> DESLIZ vertical/horizontal.</li>
-            <li><b>2 movimiento de rueda del ratón:</b> ZOOM</li>
+            <li><b>Click izquierdo sostenido:</b> ROTACIÓN.</li>
+            <li><b>Click derecho sostenido :</b> PANEO</li>
+            <li><b>Rueda del ratón:</b> ZOOM</li>
           </ul>
       </ul>
     </div>
@@ -841,5 +1129,5 @@
 
 </div>
 
-    </body>
+  </body>
 </html>
