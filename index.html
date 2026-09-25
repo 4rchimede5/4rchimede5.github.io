@@ -35,9 +35,26 @@
     padding: 0;
   }
   
+  .titulo-animado {
+    background: linear-gradient(90deg, #000004, #550f6d, #ba3655, #f98c0a, #fecc35);
+    background-clip: text;
+    font-size:36px;
+    text-align:center;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 100%;
+    animation: gradienteAnimado 10s ease infinite;
+}
+
+@keyframes gradienteAnimado {
+    0% { background-position: 0% 60%; }
+    50% { background-position: 100% 0%; }
+    100% { background-position: 0% 30%; }
+}
+  
   #mapa {
     height: 80vh;
-    min-height: 500px;
+    min-height: 450px;
     }
   
   #controles {
@@ -476,8 +493,11 @@
   </head>
     
   <body>
+    <div class = "titulo-animado">
+      <b>Sequencia Sísmica en Colombia 2026</b>
+    </div>
     <div id="mapa">
-      <div id="loading" class="loading">Cargando relieve, sismos y municipios...</div>
+     <div id="loading" class="loading">Cargando relieve, sismos y municipios...</div>
     </div>
     
     <div id="controles">
@@ -1073,11 +1093,11 @@
 
       <tr>
         <td><b>Sep 23-29</b></td>
-        <td class="celda-verde-claro">197 <small>(~193 en Tolima, 1 en Antioquia)</small></td><td class="celda-verde-claro celdadiv">4.5</td>
-        <td class="celda-amarillo">2 <small>(ambos en Istmina,Chocó)</small></td><td class="celda-amarillo celdadiv">3.2</td>
-        <td class="celda-verde-lima">0 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
-        <td class="celda-verde-lima">3 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
-        <td class="celda-verde-lima">1 <small>(hasta 9/23 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-claro">374 <small>(~367 en Tolima, 2 en Antioquia)</small></td><td class="celda-verde-claro celdadiv">4.5</td>
+        <td class="celda-amarillo">6 <small>(cerca a Istmina,Chocó)</small></td><td class="celda-amarillo celdadiv">3.6</td>
+        <td class="celda-verde-lima">0 <small>(9/24 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">3 <small>(9/24 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
+        <td class="celda-verde-lima">1 <small>(9/24 11:59pm)</small></td><td class="celda-verde-lima celdadiv">—</td>
       </tr>
       
       <tr class="fila-futuro">
