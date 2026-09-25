@@ -11,10 +11,13 @@
     <script data-goatcounter="https://colsismos.goatcounter.com/count"async src="//gc.zgo.at/count.js"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    
     <script>// Si Plotly no se cargó, cargar desde otro CDN
       if (typeof Plotly === 'undefined') {
         document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"><\/script>');}
     </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script> 
      
     <style>
       <style>
@@ -573,6 +576,109 @@
           //Configurar Resize
           configurarResize();
         })
+        .then(() =>{
+          const mapa = document.getElementById('mapa');
+          const hammer = new Hammer(mapa); 
+          
+          //Habilitar gestos
+          hammer.get('pinch').set({ enable: true });
+          hammer.get('pan').set({ enable: true });
+          hammer.get('rotate').set({ enable:true });  
+          
+          //Variables para la cámara
+          let camaraActual =  null;
+          let camaraInicial = null;
+          
+          // Guardar la cámara actual
+          mapa.on('plotly_relayout',function(eventData){
+            if (eventData['scene.camera']){
+              camaraActual = eventData['scene.camera'];
+            }
+          });
+          
+          //Pellizco (zoom)
+          hammer.on('pinchstart',function(){
+            camaraInicial = JSON.parse(JSON.stringify(
+              document.getElementById('mapa')._fullLayout.scene.camera
+            ));
+          });
+          hammer.on('pinch',function(e){
+             if (!cameraInicial) return;
+             const camera = JSON.parse(JSON.stringify(cameraInicial));
+             const factor = 1 / e.scale;
+             camera.eye.x *= factor;
+             camera.eye.y *= factor;
+             camera.eye.z *= factor;
+             Plotly.relayout('mapa',{'scene.camera':camera});
+          });
+          hammer.on('pinchend',function(){
+          camaraInicial = null;
+          });
+          
+          //Paneo
+          hammer.on('panstart',function(){
+            camaraInicial = JSON.parse(JSON.stringify(
+              document.getElementById('mapa')._fullLayout.scene.camera
+            ));
+          });
+          hammer.on('pan',function(e){
+            if (!camaraInicial) return;
+            const camera = JSON.parse(JSON.stringify(camaraInicial));
+            const factor = 0.01;
+            camera.camera.x += e.deltaX*factor;
+            camera.camera.y += e.deltaY*factor;
+            camera.camera.z += e.deltaZ*factor;
+            Plotly.relayout('mapa',{'scene.camera':camera});
+          });     
+          hammer.on('panend',function(){
+            camaraInicial = null;
+          });
+          
+          //Rotación
+          hammer.on('rotatestart',function(){
+            camaraInicial = JSON.parse(JSON.stringify(
+              document.getElementById('mapa')._fullLayout.scene.camera
+            ));
+          });
+          hammer.on('rotate',function(e){
+            if (!camaraInicial) return;
+            const camera = JSON.parse(JSON.stringify(camaraInicial));
+            const factor = 0.005;
+            //angulos de rotación en radianes
+            const theta = e.deltaX*factor; // rotación horizontal
+            const phi = e.deltaY*factor; // rotación vertical
+            //vector radial (eye - center)
+            const eye = camaraInicial.eye;
+            const center = camaraInicial.center;
+            //rotación horizontal (alrededor del eje Z)
+            const cosTheta = Math.cos(theta);
+            const sinTheta = Math.sin(theta);
+            const rx1 = rx*cosTheta - ry*sinTheta;
+            const ry1 = rx*sinTheta + ry*cosTheta;
+            const rz1 = rz;
+            //rotación vertical alrededor del eje X
+            const cosPhi = Math.cos(phi);
+            const sinPhi = Math.sin(phi);
+            const rx2 = rx1;
+            const ry2 = ry1*cosPhi - rz1*sinPhi;
+            const rz2 = ry1*sinPhi + rz1*cosPhi;
+            
+            //Nueva posición del ojo
+            const nuevaCamara={
+              eye:{
+                x:center.x + rx2,
+                y:center.y + ry2,
+                z:center.z + rz2  
+              },
+              up:camaraInicial.up,
+              center:camaraInicial.center
+            };
+            Plotly.relayout('mapa',{'scene.camera':nuevaCamara});
+          });
+          hammer.on('rotateend',function(){
+            camaraInicial=null;
+          });
+        })
         .catch(error => {
           console.error('Error:', error);
           const mapa = document.getElementById('mapa');
@@ -676,7 +782,7 @@
             
             // Restaurar cámara inicial
             camaraActual = dataGlobal.layout.scene ? dataGlobal.layout.scene.camera : {
-                eye: {x: 1.5, y: 1.5, z: 0.8},
+                eye: {x: 1.5, y: 1.5, z: 1.0},
                 up: {x: 0, y: 0, z: 1},
                 center: {x: 0, y: 0, z: 0}
             };
@@ -705,7 +811,6 @@
                 }
             }
         });
-        
         
         
         function irAFrame(indice) {
@@ -766,7 +871,7 @@
 
   <div class="aviso">
     <div><b>⚠️ Recomendación:</b> Lee la introducción y explora la discusión.</div>
-    <div><b>⚠️ Recomendación:</b> Pausa la animación antes de rotar, panear o hacer zoom en el grafico.
+    <div><b>⚠️ Recomendación:</b> Pausa la animación antes de rotar, panear o zoom.
     <div>Los sismos cargan uno por uno pero puedes deslizar la barra para adelantar a la fecha que te interese (más adelante habra la opción de acelerar la animación de sismos).</div>
   </div>
   
