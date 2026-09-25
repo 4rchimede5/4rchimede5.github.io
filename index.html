@@ -618,7 +618,7 @@
     
           Plotly.animate('mapa', frame, {
             transition: {duration: 0},
-            frame: {duration: 0, redraw: false},
+            frame: {duration: 0, redraw: true},
              mode: 'immediate'
           }).then(function() {
             // Restaurar la cámara
@@ -714,7 +714,7 @@
             
             Plotly.animate('mapa', frame, {
                 transition: {duration: 0},
-                frame: {duration: 0, redraw: false},
+                frame: {duration: 0, redraw: true},
                 mode: 'immediate'
             }).then(function() {
                 // Restaurar la cámara después del frame
@@ -730,10 +730,8 @@
           function actualizarInfoFrame() {
             const frame = dataGlobal.frames[frameActual];
             const nombre = frame ? frame.name : '';
-            let fechaFormateada = nombre;
-            const fecha = new Date(nombre);
             const total = dataGlobal.frames.length;
-            infoFrame.textContent = `Sismos: ${frameActual + 1} / ${totalFrames} — ${nombre}`;
+            infoFrame.textContent = `${nombre} - Sismo: ${frameActual + 1} / ${totalFrames}`;
           }
         }
           

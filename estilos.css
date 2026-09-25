@@ -13,6 +13,73 @@
     padding: 0;
   }
   
+  #mapa {
+    height: 80vh;
+    min-height: 400px;
+    }
+  
+  #controles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background-color: rgba(174, 175, 70, 0.10);
+    border-top: 2px solid #AEAF46;
+    flex-wrap: wrap;
+  }
+  
+        #controles button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #98062A;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #controles button:hover {
+            background-color: #AD626F;
+        }
+        
+        #controles button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #controles .reset {
+            background-color: #020228;
+        }
+        
+        #controles .reset:hover {
+            background-color: #333366;
+        }
+        
+        #info-frame {
+            font-size: 14px;
+            color: #020228;
+            font-weight: bold;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        #slider-container {
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #slider-frame {
+            width: 80%;
+            max-width: 800px;
+        }
+  
   /*texto principal*/
   .resena {
     max-width: 1400px;
