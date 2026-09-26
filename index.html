@@ -36,21 +36,55 @@
   }
   
   .titulo-animado {
-    background: linear-gradient(90deg, #000004, #550f6d, #ba3655, #f98c0a, #fecc35);
+    background: linear-gradient(30deg,
+        #000004,
+        #550f6d,
+        #ba3655,
+        #f98c0a,
+        #fecc35,
+        #f98c0a,
+        #ba3655,
+        #550f6d,
+        #000004);
     background-clip: text;
     font-size:36px;
     text-align:center;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-size: 300% 100%;
-    animation: gradienteAnimado 10s ease infinite;
+    animation: gradienteAnimado 15s ease infinite;
 }
 
-@keyframes gradienteAnimado {
-    0% { background-position: 0% 60%; }
-    50% { background-position: 100% 0%; }
-    100% { background-position: 0% 30%; }
+  @keyframes gradienteAnimado {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
 }
+
+  .patreon-animado{
+    background: linear-gradient(45deg,
+      #000080, #0000cd, #1e90ff, #00bfff,
+      #00ffff, #7fffd4, #98fb98, #f0fff0,
+      #98fb98, #7fffd4, #00ffff, #00bfff,
+      #1e90ff, #0000cd, #000080);
+
+    background-clip: text;
+    font-size:30px;
+    font-weight:bold;
+    text-align:center;
+    text-align:center;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 100% 100%;
+    animation: gradientePatreon 5s ease infinite;
+  }
+  
+  @keyframes gradientePatreon {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
   
   #mapa {
     height: 80vh;
@@ -1168,7 +1202,12 @@
 
   <div class="donaciones">
     <h4>¿Quieres y puedes?</h4>
-    <h6>Durante este mes de Septiembre dona a tu proyecto favorito de amor y amistad</h6>
+    <h6>Durante este mes de Septiembre apoya tu proyecto favorito de amor y amistad</h6>
+    <div style="text-align: center;">
+      <a href="https://patreon.com/colsismos?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" target="_blank" rel="noopener noreferrer"  class="patreon-animado">
+        PATREON
+      </a>
+    </div>
 
     <div class="proyectos">
       <h3>**Divulgación de información y alertas ambientales**</h3>
