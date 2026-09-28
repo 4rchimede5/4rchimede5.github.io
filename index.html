@@ -650,13 +650,13 @@
       // ===== 1. Cargar datos =====  
       fetch(URL_DATOS)
         .then(response => {
-          console.log('Plotly disponible:', typeof Plotly);
+          //console.log('Plotly disponible:', typeof Plotly);
           if (!response.ok) throw new Error('HTTP ' + response.status);
             
           // Obtener el tamaño total del archivo
           const contentLength = response.headers.get('content-length');
           totalGlobal = contentLength ? parseInt(contentLength) : 0;
-          console.log('Tamaño de contenido', totalGlobal)
+          //console.log('Tamaño de contenido', totalGlobal)
             
           // Si no hay content-length, mostrar progreso indeterminado
           if (!totalGlobal) {
@@ -672,18 +672,18 @@
         })
         .then(buffer => actualizarYEsperar('Descomprimiendo datos...',()=>{
           // Paso 2: Descomprimir
-          actualizarProgreso(87)
+          actualizarProgreso(99.7)
           return pako.inflate(new Uint8Array(buffer), {to: 'string'})
         }))
         .then(decompressed => actualizarYEsperar('Procesando datos...',()=>{
-          actualizarProgreso(93)
+          actualizarProgreso(99.8)
           return JSON.parse(decompressed)
           //sin brackets/llaves el valor se devuelve solo y no requiere return si es solo una comando para ejecutar
           }))
         .then(data => actualizarYEsperar('Procesando fechas...',()=>{
-          console.log("Datos cargados")
-          console.log('Frames:', data.frames ? data.frames.length : 'undefined')
-          actualizarProgreso(95);
+          //console.log("Datos cargados")
+          //console.log('Frames:', data.frames ? data.frames.length : 'undefined')
+          actualizarProgreso(99.9);
           dataGlobal = data
           // ===== Actualizar la fecha del último sismo =====
           const ultimoFrame = data.frames[data.frames.length - 1]
@@ -709,7 +709,7 @@
         
         }))
         .then(data => actualizarYEsperar('Renderizando gráfico...',()=>{
-          actualizarProgreso(99);
+          actualizarProgreso(99.6);
           // Eliminar width y height del layout
           delete data.layout.width;
           delete data.layout.height;
@@ -738,7 +738,7 @@
           Plotly.addFrames('mapa', dataGlobal.frames)
         ))
         .then(() => {
-          console.log('Frames añadidos');
+          //console.log('Frames añadidos');
             
           // Ocultar loading
           const loading = document.getElementById('loading');
@@ -869,7 +869,7 @@
           });
         })
         .catch(error => {
-          console.error('Error:', error);
+          //console.error('Error:', error);
           const mapa = document.getElementById('mapa');
           if (mapa) {
               mapa.innerHTML = '<div style="text-align:center;padding:50px;color:#98062A;">Error al cargar los datos: ' + error.message + '</div>';
@@ -896,7 +896,7 @@
         
         function sliderMarcas(numFrames) {
           const numMarcas = Math.max(2, Math.floor(numFrames*0.008));
-          console.log(numMarcas,"numero de marcas 1%")
+          //console.log(numMarcas,"numero de marcas 1%")
           //datalist
           //const listaMarcas = document.getElementById('listaMarcas');
           //listaMarcas.innerHTML='';
@@ -924,9 +924,10 @@
             span.textContent = nombre;
             lugar=`${(indiceFrame/(numFrames-1))*100}%`
             span.style.left = `${(indiceFrame/(numFrames-1))*100}%`;
-            console.log(lugar,"ubicacion marca")
+            //console.log(lugar,"ubicacion marca")
             span.title = `Ir al evento ${indiceFrame}`;
             span.addEventListener('click',function(){
+              frameActual =indiceFrame+1;
               irAFrame(indiceFrame);
               actualizarInfoFrame(indiceFrame);
             });
@@ -934,7 +935,7 @@
             
           }
           //contador de opciones
-          console.log(`Creadas ${numMarcas} marcas para ${numFrames} frames`)
+          //console.log(`Creadas ${numMarcas} marcas para ${numFrames} frames`)
              
         }       
         
@@ -1028,6 +1029,7 @@
             pausarAnimacion();
             frameActual = parseInt(slider.value);
             irAFrame(frameActual);
+            
         });
         
         // ===== Teclado =====
@@ -1068,13 +1070,14 @@
         }
  //==========================fecha y hora de sismo=================       
         function actualizarInfoFrame(indice) {
-          console.log(indice,frameActual)
+          //console.log(indice,frameActual)
           const frame = indice=='undefined' && frameActual==0
             ? dataGlobal.frames[frameActual]
             : dataGlobal.frames[indice];
           const nombre = frame ? frame.name : '';
           const total = dataGlobal.frames.length;
           infoFrame.textContent = `Fecha y hora: ${nombre} | Sismo: ${indice + 1} / ${totalFrames}`;
+          
         }
                               
       }
@@ -1119,17 +1122,17 @@
         if (!nombre) return 'Fecha desconocida';
    
         //if (nombre.match(/^\d2[-/]\d2\s+\d2:\d2/)) {
-          console.log(nombre)
+          //console.log(nombre)
           const [fecha, hora] = nombre.split(' ');
           const [mes, dia] = fecha.split('-');
           const [hh, mm] = hora.split(':');
-          console.log(fecha,mes,dia)
+          //console.log(fecha,mes,dia)
           const meses = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
              ];
           const mesNombre = meses[parseInt(mes) - 1];
-          console.log(mesNombre)
+          //console.log(mesNombre)
           //const hora12 = convertirA12Horas(parseInt(hh), parseInt(mm));
           return `${mesNombre} ${parseInt(dia)}`
           //${anio.slice(2)} ${hh}:${mm} | ${hora12}`;
@@ -1156,7 +1159,7 @@
         return readerGlobal.read().then(({done,value})=>{
           if (done){
             //Descarga completa
-            actualizarProgreso(80);
+            actualizarProgreso(99.5);
             progressText.textContent='Procesando datos...';
             //Combinar los chunks
             const totalLength = chunksGlobal.reduce((acc,chunk)=>acc+chunk.length,0);
@@ -1192,6 +1195,7 @@
     <div><b>⚠️ Recomendación:</b> Pausa la animación antes de rotar, panear o zoom.</div>
     <div><b>⚠️ Recomendación:</b> Apuntar a un sismo o municipo muestra información adicional</div>
     <div><b>⚠️ Recomendación:</b>Los sismos cargan uno a uno, se puede deslizar la barra a la fecha que interese.</div>
+    <div><b>⚠️ Recomendación:</b>La cadena de sismos que esta ocurriendo en Tolima tambien es visible ("Ascendete" al Nevado de Tolima)</div>
    </div>
   
 
