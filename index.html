@@ -35,6 +35,25 @@
     padding: 0;
   }
   
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #AEAF46, #98062A);
+    transition: width 0.2s ease;
+}
+
+@keyframes progresoIndeterminado {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+
+#progress-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #020228;
+    font-weight: bold;
+}
+  
   .titulo-animado {
     background: linear-gradient(30deg,
         #000004,
@@ -519,6 +538,25 @@
             font-size: 18px;
             color: #98062A;
         }
+        
+#slider-marcas {
+    position: relative;
+    height: 20px;
+    margin-top: 5px;
+}
+
+#slider-marcas span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #020228;
+    cursor: pointer;
+}
+
+#slider-marcas span:hover {
+    color: #98062A;
+    font-weight: bold;
+}
 
 </style>
 
@@ -530,7 +568,17 @@
       <b>Sequencia Sísmica en Colombia 2026</b>
     </div>
     <div id="mapa">
-     <div id="loading" class="loading">Cargando relieve, sismos y municipios...</div>
+      <div id="loading" style="text-align:center; padding:50px;">
+        <div style="font-size:18px; color:#98062A; margin-bottom:20px;">
+          Cargando relieve, sismos y municipios...
+        </div>
+        <div style="width:80%; max-width:500px; margin:0 auto; background:#e0e0d0; border-radius:10px; height:20px; overflow:hidden;">
+          <div id="progress-bar" style="width:100%; height:100%; background:repeating-linear-gradient(45deg, #AEAF46, #AEAF46 10px, #98062A 10px, #98062A 20px); animation:progresoIndeterminado 1s linear infinite;"></div>
+        </div>
+        <div id="progress-text" style="margin-top:10px; font-size:14px; color:#020228;">
+          0%
+        </div>
+      </div>
     </div>
     
     <div id="controles">
@@ -547,8 +595,9 @@
 
     <div id="slider-container">
       <input type="range" id="slider-frame" min="0" max="0" value="0" step="1">
+      <div id="slider-marcas"></div>
     </div>
-  
+    <datalist id="listaMarcas"></datalist>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
       const URL_DATOS = 'https://4rchimede5.github.io/datos_sismos.json.gz';
@@ -575,7 +624,25 @@
           dataGlobal = data;
           console.log('Datos cargados');
           console.log('Frames:', data.frames ? data.frames.length : 'undefined');
+          
+          // ===== Actualizar la fecha del último sismo =====
+            const ultimoFrame = data.frames[data.frames.length - 1];
+            const primerFrame = data.frames[0];
+            const nombreUltimo = ultimoFrame.name || '';
+            const nombrePrimer = primerFrame.name || '';
+        
+            // Formatear la fecha
+            const fechaRango = 'desde ${nombrePrimer} hasta ${nombreUltimo}' 
+            const fechaPrimera = formatearFechas(nombrePrimer)
             
+            // Actualizar el HTML
+            const elemento = document.getElementById('fecha-actualizacion');
+            if (elemento) {elemento.textContent = fechaRango;}
+            
+            const elemento = document.getElementById('fecha-inicial');
+            if (elemento) {elemento.textContent = fechaPrimera}
+          }
+          
           // Eliminar width y height del layout
           delete data.layout.width;
           delete data.layout.height;
@@ -751,13 +818,53 @@
         const btnReset = document.getElementById('btn-reset');
         const slider = document.getElementById('slider-frame');
         const infoFrame = document.getElementById('info-frame');
-        
-        const totalFrames = dataGlobal.frames.length;
-        
+         
         // Configurar slider
         slider.max = totalFrames - 1;
         slider.value = 0;
+        slider.list=sliderMarcas(totalFrames);
         actualizarInfoFrame();
+        
+        function sliderMarcas(numFrames) {
+          const numMarcas = Math.max(2, Math.floor(numFrames*0.01));
+          
+          //datalist
+          //const listaMarcas = document.getElementById('listaMarcas');
+          //listaMarcas.innerHTML='';
+          
+          //slider personalizado
+          const contenedor = document.getElementById('slider-marcas');
+          contenedor.innerHTML = '';
+          
+          const intervalo = Math.floor(numFrames / (numMarcas-1));
+          
+          for(let i=0; i < numMarcas; i++){
+            const indiceFrame = Math.min(i*intervalo,numFrames-1);
+            const frame = dataGlobal.frames[indiceFrame];
+            const nombre = frame ? frame.name:'';
+          
+            //crear opciones en datalist
+            //const option = document.createElement('option');
+            //option.id = 'option_${i}';
+            //option.value = indiceFrame;
+            //option.label = nombre;
+            //listaMarcas.appendChild(option);
+            
+            //crear etiquetas interactivas
+            const span = document.createElement('span');
+            span.textContent = nombre;
+            span.style.left = '${(indiceFrame/(numFrames-1))*100}%';
+            span.title = 'Ir al evento ${indiceFrame}';
+            span.addEventListener('click',function(){
+              irAFrame(indiceFrame);
+            });
+            contenedor.appendChild(span);
+            
+          }
+          //contador de opciones
+          //console.log('Creadas %{numMarcas} marcas para ${numFrames} frames')
+             
+        }       
         
         function pausarAnimacion() {
             animando = false;
@@ -888,13 +995,44 @@
             actualizarInfoFrame();
         }
  //==========================fecha y hora de sismo=================       
-          function actualizarInfoFrame() {
-            const frame = dataGlobal.frames[frameActual];
-            const nombre = frame ? frame.name : '';
-            const total = dataGlobal.frames.length;
-            infoFrame.textContent = `${nombre} - Sismo: ${frameActual + 1} / ${totalFrames}`;
-          }
+        function actualizarInfoFrame() {
+          const frame = dataGlobal.frames[frameActual];
+          const nombre = frame ? frame.name : '';
+          const total = dataGlobal.frames.length;
+          infoFrame.textContent = `Fecha y hora: ${nombre} | Sismo: ${frameActual + 1} / ${totalFrames}`;
         }
+        
+        // ===== Función para formatear la fecha =====
+        function formatearFechas(nombre) {
+          if (!nombre) return 'Fecha desconocida';
+        
+          if (nombre.match(/^\d2-\d2 - \d2:\d2/)) {
+            const [fecha, hora] = nombre.split(' - ');
+            const [mes, dia] = fecha.split('-');
+            const [hh, mm] = hora.split(':');
+            
+            const meses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            const mesNombre = meses[parseInt(mes) - 1];
+            //const hora12 = convertirA12Horas(parseInt(hh), parseInt(mm));
+            
+            return `${mesNombre} ${parseInt(dia)}'
+            //${anio.slice(2)} ${hh}:${mm} | ${hora12}`;
+          }
+        
+          return nombre;
+        }
+    
+        function convertirA12Horas(hh, mm) {
+          const ampm = hh >= 12 ? 'pm' : 'am';
+          const hh12 = hh % 12 || 12;
+          const mmStr = mm.toString().padStart(2, '0');
+          return `${hh12}:${mmStr}${ampm}`;
+        }                      
+      }
           
       // ===== 3. Configurar resize =====
       function configurarResize(){
@@ -925,7 +1063,7 @@
     <div class="resena">
 
   <div class="aviso">
-    <div align=center><b>⚠️ Actualización de sismos: Septiembre 25 11:59pm ⚠️</b> </div>
+    <div align=center><b>⚠️ Actualización de sismos: <span id="fecha-actualizacion">Cargando...</span> ⚠️</b> </div>
     <div><b>⚠️ Recomendación:</b> Lee la introducción y explora la discusión.</div>
     <div><b>⚠️ Recomendación:</b> Pausa la animación antes de rotar, panear o zoom.</div>
     <div><b>⚠️ Recomendación:</b> Apuntar a un sismo o municipo muestra información adicional</div>
@@ -983,9 +1121,9 @@
 
   <p>La curvatura de la superficie de roce entre las placas muestra que las zonas más expuestas (a menos de 100 km de profundidad de la placa Nazca) están en Chocó, Antioquia occidental, la zona cafetera occidental, y las costas de Cauca y Valle del Cauca.</p>
 
-  <p><b>La secuencia de sismos desde Julio 1 hasta Septiembre 19 de este año muestra que la mayoría de los sismos que considerabamos "rutinarios" ocurren cerca a la curvatura de la superficie de roce. Es decir se generaban por la "fricción" entre las placas Sudamericana y Nazca</b></p>
+  <p><b>La secuencia de sismos es desde Mayo 1, 2026 hasta el día de ayer, y muestra que la mayoría de los sismos que considerabamos "rutinarios" ocurren cerca a la curvatura de la superficie de roce. Es decir se generaban por la "fricción" entre las placas Sudamericana y Nazca</b></p>
 
-  <p>Desde Julio 1 hasta Agosto 9 los sismos "rutinarios" (en tonos azules) ocurren en franjas alineadas con la curvatura la superficie de roce, en dirección Sur-Norte desde el Valle del Cauca hacia la costa caribe de Antioquia y el Chocó. <b> Es decir, hay una "línea" tectónica que asciende desde el Cauca hacia la costa caribe del Chocó/Antioquia.</b> <em>(Puedes pausar la animación en la fecha "08-09" y rota el gráfico para observar ese patrón).</em></p>
+  <p>Desde <span id="fecha-inicial">Cargando...</span> hasta Agosto 9 los sismos "rutinarios" (en tonos azules) ocurren en franjas alineadas con la curvatura la superficie de roce, en dirección Sur-Norte desde el Valle del Cauca hacia la costa caribe de Antioquia y el Chocó. <b> Es decir, hay una "línea" tectónica que asciende desde el Cauca hacia la costa caribe del Chocó/Antioquia.</b> <em>(Puedes pausar la animación en la fecha "08-09" y rota el gráfico para observar ese patrón).</em></p>
 
   <p>Además se notan otros sismos "rutinarios" superficiales (a menos de 30km de profundidad ) en todo el territorio en color azul claro/blancusco.</p>
 
