@@ -1077,10 +1077,9 @@
             : dataGlobal.frames[indice];
           const nombre = frame ? frame.name : '';
           const total = dataGlobal.frames.length;
-          infoFrame.textContent = `Fecha y hora: ${nombre} | Sismo: ${indice + 1} / ${totalFrames}`;
+          infoFrame.textContent = `Fecha y hora: ${nombre} | Sismo: ${(indice + 1)*2} / ${totalFrames*2}`;
           
-        }
-                              
+        } 
       }
           
       // ===== 3. Configurar resize =====
