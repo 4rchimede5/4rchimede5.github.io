@@ -641,6 +641,7 @@
       let frameActual = 0;
       let animando = false;
       let camaraActual = null;
+      let camaraInicial = null;
       const DURACION_FRAME = 100; // ms por frame
       let readerGlobal = null;
       let recibidoGlobal = 0;
@@ -719,7 +720,7 @@
           data.layout.uirevision = 'mantener-camara';
           
           // Guardar la cámara inicial
-          camaraActual = data.layout.scene ? data.layout.scene.camera : {
+          camaraInicial = data.layout.scene ? data.layout.scene.camera : {
             eye: {x: 1.5, y: 1.5, z: 0.8},
             up: {x: 0, y: 0, z: 1},
             center: {x: 0, y: 0, z: 0}
@@ -755,7 +756,7 @@
             }
           });
           
-          //Restaurar la cámara antes de cade frame
+          //Restaurar la cámara antes de cada frame
           mapa.on('plotly_animatingframe',function() {
             if (camaraActual) {
               Plotly.relayout('mapa',{'scene.camera':camaraActual});
@@ -773,10 +774,6 @@
           hammer.get('pinch').set({ enable: true });
           hammer.get('pan').set({ enable: true });
           hammer.get('rotate').set({ enable:true });  
-          
-          //Variables para la cámara
-          let camaraActual =  null;
-          let camaraInicial = null;
           
           // Guardar la cámara actual
           mapa.on('plotly_relayout',function(eventData){
@@ -814,9 +811,9 @@
             if (!camaraInicial) return;
             const camera = JSON.parse(JSON.stringify(camaraInicial));
             const factor = 0.01;
-            camera.camera.x += e.deltaX*factor;
-            camera.camera.y += e.deltaY*factor;
-            camera.camera.z += e.deltaZ*factor;
+            camera.x += e.deltaX*factor;
+            camera.y += e.deltaY*factor;
+            camera.z += e.deltaZ*factor;
             Plotly.relayout('mapa',{'scene.camera':camera});
           });     
           hammer.on('panend',function(){
@@ -964,9 +961,9 @@
              mode: 'immediate'
           }).then(function() {
             // Restaurar la cámara
-            if (camaraActual) {
-              Plotly.relayout('mapa', {'scene.camera': camaraActual});
-            }
+            //if (camaraActual) {
+              //Plotly.relayout('mapa', {'scene.camera': camaraActual});
+            //}
         
             // Actualizar UI
             slider.value = frameActual;
@@ -1016,10 +1013,7 @@
             irAFrame(frameActual);
             
             // Restaurar cámara inicial
-            camaraActual = dataGlobal.layout.scene ? dataGlobal.layout.scene.camera : {
-                eye: {x: 1.5, y: 1.5, z: 1.0},
-                up: {x: 0, y: 0, z: 1},
-                center: {x: 0, y: 0, z: 0}
+            camaraActual = camaraInicial
             };
             Plotly.relayout('mapa', {'scene.camera': camaraActual});
         });
@@ -1060,9 +1054,9 @@
                 mode: 'immediate'
             }).then(function() {
                 // Restaurar la cámara después del frame
-                if (camaraActual) {
-                    Plotly.relayout('mapa', {'scene.camera': camaraActual});
-                }
+               // if (camaraActual) {
+               //     Plotly.relayout('mapa', {'scene.camera': camaraActual});
+                //}
             });
             
             slider.value = indice;
