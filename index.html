@@ -126,7 +126,7 @@
             font-weight: bold;
             color: #ffffff;
             background-color: #98062A;
-            border: none;
+            border: solid 1px black;
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -582,6 +582,33 @@
     font-weight: bold;
 }
 
+#controles-moviles{
+  position: relative;
+  align-items: center;
+  display:flex;
+  font-size:18px;
+  text-align:center;
+  width:100%;
+  justify-content: center;
+  flex-wrap:wrap;
+}
+
+.control-movil{
+  position: relative;
+  align-items: center;
+  display:flex;
+  font-size:18px;
+  text-align:center;
+  width:24px;
+  justify-content: center;
+  flex-wrap:wrap;
+  color: #ffffff;
+  background-color: #98362A;
+  border: solid 1px black;
+  border-radius: 6px;
+
+}
+
 </style>
 
     </style>
@@ -606,14 +633,10 @@
       </div>
     </div>
     <div id="controles-moviles">
-    <button onclick="zoomIn()">+</button>
-    <button onclick="zoomOut()">−</button>
-    <button onclick="panIzquierda()">←</button>
-    <button onclick="panDerecha()">→</button>
-    <button onclick="panArriba()">↑</button>
-    <button onclick="panAbajo()">↓</button>
-    <button onclick="resetView()">⟲</button>
-</div>
+      <button onclick="zoomIn()" class="control-movil">+</button>
+      <button onclick="zoomOut()" class="control-movil">−</button>
+      <button onclick="resetView()" class="control-movil">⟲</button>
+    </div>
     <div id="controles">
       <span id="info-frame"></span>
     </div>  
@@ -652,6 +675,12 @@
           Plotly.relayout('mapa', {'scene.camera': camera});
       }
 
+      /*
+      <button onclick="panIzquierda()">←</button>
+      <button onclick="panDerecha()">→</button>
+      <button onclick="panArriba()">↑</button>
+      <button onclick="panAbajo()">↓</button>    
+      
       function panIzquierda() {
           const scene = document.getElementById('mapa')._fullLayout.scene;
           const camera = JSON.parse(JSON.stringify(scene.camera));
@@ -678,7 +707,7 @@
           const camera = JSON.parse(JSON.stringify(scene.camera));
           camera.eye.y -= 0.1;
           Plotly.relayout('mapa', {'scene.camera': camera});
-      }
+      }*/
 
       function resetView() {
           Plotly.relayout('mapa', {
@@ -783,7 +812,7 @@
           data.layout.uirevision = 'mantener-camara';
           
           // Guardar la cámara inicial
-          camaraActual = data.layout.scene ? data.layout.scene.camera : {
+          camaraInicial = data.layout.scene ? data.layout.scene.camera : {
             eye: {x: 1.5, y: 1.5, z: 0.8},
             up: {x: 0, y: 0, z: 1},
             center: {x: 0, y: 0, z: 0}
@@ -820,11 +849,11 @@
           });
           
           //Restaurar la cámara antes de cada frame
-          mapa.on('plotly_animatingframe',function() {
+          /*mapa.on('plotly_animatingframe',function() {
             if (camaraActual) {
-              Plotly.relayout('mapa',{'scene.camera':camaraActual});
+             Plotly.relayout('mapa',{'scene.camera':camaraActual});
             }
-          });
+          });*/ 
           
           //Configurar Resize
           configurarResize();
@@ -1294,8 +1323,9 @@
         <li><b>Móviles/Tabletas:</b></li>
             <div><b>1 toque:</b> FIJAR VISTA</div>
             <div><b>1 dedo (arrastre) :</b> ROTACIÓN </div>
-            <div><b>2 dedos (pellizcar):</b> ZOOM </div>
-            <div><b>2 dedos (arrastre) :</b> PANEO </div>
+            <div><b>2 dedos (arrastre):</b> ROTACIÓN </div>
+            <div><b>Botón = + / - :</b> Zoom = más / menos </div>
+            <div><b>Botón = ⟲ :</b> VISTA ORIGINAL </div>
         <li><b>Mouse/Ratón:</b></li>
             <div><b>Click izq.:</b> ROTACIÓN.</div>
             <div><b>Click der.:</b> PANEO</div>
